@@ -1,11 +1,13 @@
 module SimpleExp where
 
+import Utilities ( addBrace, applyOn )
+
 -- | Simple Expression:
 -- E ::= n | E + E | E * E
-data SimpleExp 
-  = Nmbr {num :: Integer} 
-  | Plus {exp1 :: SimpleExp, exp2 :: SimpleExp}
-  | Prod {exp1 :: SimpleExp, exp2 :: SimpleExp}
+data SimpleExp
+  = Nmbr { num :: Integer }
+  | Plus { exp1 :: SimpleExp, exp2 :: SimpleExp }
+  | Prod { exp1 :: SimpleExp, exp2 :: SimpleExp }
   deriving (Eq)
 
 {-# INLINE isNmbr #-}
@@ -19,27 +21,17 @@ isPlus _       = False
 isProd Prod {} = True
 isProd _       = False
 
--- | Add a pair of round braces to the String.
-{-# INLINE addBrace #-}
-addBrace :: String -> String
-addBrace = ('(' :) . (++ ")")
-
--- | Apply a function if the predicate is True.
-{-# INLINE applyOn #-}
-applyOn :: Bool -> (a -> a) -> a -> a
-applyOn p f a = if p then f a else a
-
 instance Show SimpleExp where
   show exp = "Exp: " ++ show' exp
     where
       show' (Nmbr n) = show n
-      show' (Plus e e') 
-        = show' e ++ 
-          " + " ++ 
+      show' (Plus e e')
+        = show' e ++
+          " + " ++
           applyOn (isPlus e') addBrace (show' e')
       show' (Prod e e')
-        = applyOn (isPlus e) addBrace (show' e) ++ 
-          " * " ++ 
+        = applyOn (isPlus e) addBrace (show' e) ++
+          " * " ++
           applyOn (not $ isNmbr e') addBrace (show' e')
 
 instance Num SimpleExp where

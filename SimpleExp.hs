@@ -1,5 +1,8 @@
+{-# LANGUAGE InstanceSigs #-}
+
 module SimpleExp where
 
+import Expression ( Expression(..) )
 import Utilities ( addBrace, applyOn )
 
 -- | Simple Expression:
@@ -42,23 +45,24 @@ instance Num SimpleExp where
   fromInteger = Nmbr
   negate = undefined
 
--- | Is normal (irreducible).
-{-# INLINE isNormal #-}
-isNormal :: SimpleExp -> Bool
-isNormal = isNmbr
+instance Expression SimpleExp where
+  -- | Is normal (irreducible).
+  {-# INLINE isNormal #-}
+  isNormal :: SimpleExp -> Bool
+  isNormal = isNmbr
 
--- | Big-Step evaluation.
-eval :: SimpleExp -> Integer
-eval (Nmbr n)    = n                -- B-Num
-eval (Plus e e') = eval e + eval e' -- B-Add
-eval (Prod e e') = eval e * eval e' -- B-Mul
+  -- | Big-Step evaluation.
+  eval :: SimpleExp -> Integer
+  eval (Nmbr n)    = n                -- B-Num
+  eval (Plus e e') = eval e + eval e' -- B-Add
+  eval (Prod e e') = eval e * eval e' -- B-Mul
 
--- | Small-Step evaluation.
-eval1 :: SimpleExp -> SimpleExp
-eval1 (Plus (Nmbr n) (Nmbr n')) = Nmbr $ n + n'            -- S-Add-Num
-eval1 (Plus (Nmbr n) e')        = Plus (Nmbr n) $ eval1 e' -- S-Add-Right
-eval1 (Plus e        e')        = Plus (eval1 e) e'        -- S-Add-Left
-eval1 (Prod (Nmbr n) (Nmbr n')) = Nmbr $ n * n'            -- S-Mul-Num
-eval1 (Prod (Nmbr n) e')        = Prod (Nmbr n) $ eval1 e' -- S-Mul-Right
-eval1 (Prod e        e')        = Prod (eval1 e) e'        -- S-Mul-Left
-eval1 _                         = error "Cannnot reduce a normal form!"
+  -- | Small-Step evaluation.
+  eval1 :: SimpleExp -> SimpleExp
+  eval1 (Plus (Nmbr n) (Nmbr n')) = Nmbr $ n + n'            -- S-Add-Num
+  eval1 (Plus (Nmbr n) e')        = Plus (Nmbr n) $ eval1 e' -- S-Add-Right
+  eval1 (Plus e        e')        = Plus (eval1 e) e'        -- S-Add-Left
+  eval1 (Prod (Nmbr n) (Nmbr n')) = Nmbr $ n * n'            -- S-Mul-Num
+  eval1 (Prod (Nmbr n) e')        = Prod (Nmbr n) $ eval1 e' -- S-Mul-Right
+  eval1 (Prod e        e')        = Prod (eval1 e) e'        -- S-Mul-Left
+  eval1 _                         = error "Cannnot reduce a normal form!"

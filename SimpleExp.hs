@@ -30,43 +30,50 @@ instance Expression SimpleExp where
   isNormal = isNmbr
 
   -- | Big-Step evaluation.
-  eval :: Context -> SimpleExp -> SimpleExp
-  eval _ (Nmbr n)    = Nmbr n -- B-Num
-  eval c (Plus e e')          -- B-Add
-    | isNmbr l && isNmbr r = Nmbr $ fromNmbr l + fromNmbr r
-    | otherwise            = l + r
-    where
-      l = eval c e
-      r = eval c e'
-  eval c (Prod e e')          -- B-Mul
-    | isNmbr l && isNmbr r = Nmbr $ fromNmbr l * fromNmbr r
-    | otherwise            = l * r
-    where
-      l = eval c e
-      r = eval c e'
-  eval c (EVar v) = maybe (EVar v) (eval c) (lookup v c)
+  evalS :: SimpleExp -> State Context SimpleExp
+  evalS exp = do
+    c <- get
+    case exp of
+      Nmbr n    -> return $ Nmbr n -- B-Num
+      Plus e e' -> do              -- B-Add
+        l <- evalS e
+        r <- evalS e'
+        if isNmbr l && isNmbr r
+          then return $ Nmbr $ fromNmbr l + fromNmbr r
+          else evalS $ l + r
+      Prod e e' -> do              -- B-Mul
+        l <- evalS e
+        r <- evalS e'
+        if isNmbr l && isNmbr r
+          then return $ Nmbr $ fromNmbr l * fromNmbr r
+          else evalS $ l * r
+      EVar v    -> do
+        let mv = lookup v c
+        case mv of
+          Nothing -> return $ EVar v
+          Just e  -> return e
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- wrong state.
-  eval1 :: SimpleExp -> StateT Context Maybe SimpleExp
-  eval1 exp = do
+  eval1S :: SimpleExp -> StateT Context Maybe SimpleExp
+  eval1S exp = do
     c <- get
     case exp of
       Plus e e' -> case (e, e') of
         (Nmbr n, Nmbr n') -> return (Nmbr $ n + n') -- W-EXP.ADD
         (Nmbr n, e')      -> do                     -- W-EXP.RIGHT
-          (e'', c') <- lift $ runStateT (eval1 e') c
+          (e'', c') <- lift $ runStateT (eval1S e') c
           put c' >> return (Plus (Nmbr n) e'')
         (e,      e')      -> do                     -- W-EXP.LEFT
-          (e'', c') <- lift $ runStateT (eval1 e) c
+          (e'', c') <- lift $ runStateT (eval1S e) c
           put c' >> return (Plus e'' e')
       Prod e e' -> case (e, e') of
         (Nmbr n, Nmbr n') -> return (Nmbr $ n * n') -- W-EXP.MUL
         (Nmbr n, e')      -> do                     -- W-EXP.RIGHT
-          (e'', c') <- lift $ runStateT (eval1 e') c
+          (e'', c') <- lift $ runStateT (eval1S e') c
           put c' >> return (Prod (Nmbr n) e'')
         (e,      e')      -> do                     -- W-EXP.LEFT
-          (e'', c') <- lift $ runStateT (eval1 e) c
+          (e'', c') <- lift $ runStateT (eval1S e) c
           put c' >> return (Prod e'' e')
       EVar v    -> do
         let e' = lookup v c

@@ -12,18 +12,22 @@ class Expression e where
   isNormal :: e -> Bool
 
   -- | Big-Step evaluation.
-  eval :: Context -> e -> e
+  evalS :: e -> State Context e
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- wrong state.
-  eval1 :: e -> StateT Context Maybe e
+  eval1S :: e -> StateT Context Maybe e
+
+  -- | Big-Step evaluation, discarding the state.
+  eval :: Context -> e -> e
+  eval c exp = evalState (evalS exp) c
 
   -- | Return a list of Expressions, each one is one-step reduced from the 
   -- previous one.
   evalStar :: e -> State Context [e]
   evalStar exp = do
     ctxt <- get
-    case runStateT (eval1 exp) ctxt of
+    case runStateT (eval1S exp) ctxt of
       Nothing     -> if isNormal exp
         then return [exp]
         -- Add a dash to represent an error state.

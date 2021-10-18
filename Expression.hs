@@ -1,6 +1,9 @@
+{-# LANGUAGE ConstrainedClassMethods #-}
+
 module Expression where
 
 import Control.Monad.Trans.State
+import Control.Monad
 
 type Context a = [(String, a)]
 
@@ -19,8 +22,25 @@ class Expression e where
 
   -- | Return a list of Expressions, each one is one-step reduced from the 
   -- previous one.
-  -- evalStar :: Context e -> State [e] (Context e)
-  -- evalStar c = do
-  --   let cur = runStateT (eval1 c)
-  --   rest <- evalStar c
-  --   put (curr : rest)
+  evalStar :: e -> State (Context e) [e]
+  evalStar exp = do
+    ctxt <- get
+    let cur = runStateT (eval1 exp) ctxt
+    case cur of
+      Nothing     -> if isNormal exp
+        then return [exp]
+        else put (("_", exp) : ctxt) >> return [exp]
+      Just (e, c) -> do
+        put c
+        rest <- evalStar e
+        return $ exp : rest
+
+  -- | Pretty prints the result of evalStar. Only works if the expression
+  -- implements 'Show'.
+  evalStarPrint :: Show e => Context e -> e -> IO ()
+  evalStarPrint c exp = do
+    let (exps, ctxt) = runState (evalStar exp) c
+    forM_ exps print
+    putStrLn $ if not (null ctxt) && fst (head ctxt) == "_"
+      then "Evaluation failure due to having undefined variable(s)!"
+      else "Final state: " ++ show ctxt

@@ -41,13 +41,13 @@ instance Expression SimpleExp where
         r <- evalS e'
         if isNmbr l && isNmbr r
           then return $ Nmbr $ fromNmbr l + fromNmbr r
-          else evalS $ l + r
+          else return $ l + r
       Prod e e' -> do              -- B-Mul
         l <- evalS e
         r <- evalS e'
         if isNmbr l && isNmbr r
           then return $ Nmbr $ fromNmbr l * fromNmbr r
-          else evalS $ l * r
+          else return $ l * r
       EVar v    -> do
         let mv = M.lookup v c
         case mv of

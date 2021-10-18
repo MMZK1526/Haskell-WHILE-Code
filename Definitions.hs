@@ -1,5 +1,6 @@
 module Definitions where
 
+import Data.Map
 import Utilities ( addBrace, applyOn )
 
 -- | Simple Expression:
@@ -62,4 +63,4 @@ instance Show Language where
   show (Com com) = show com
 
 -- | The "State" or "Context" of the expression.
-type Context = [(String, SimpleExp)]
+type Context = Map String SimpleExp

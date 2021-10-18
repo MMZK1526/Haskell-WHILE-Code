@@ -3,6 +3,7 @@
 
 module SimpleExp where
 
+import qualified Data.Map as M
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
 import Expression ( Expression(..) )
@@ -48,7 +49,7 @@ instance Expression SimpleExp where
           then return $ Nmbr $ fromNmbr l * fromNmbr r
           else evalS $ l * r
       EVar v    -> do
-        let mv = lookup v c
+        let mv = M.lookup v c
         case mv of
           Nothing -> return $ EVar v
           Just e  -> return e
@@ -76,6 +77,6 @@ instance Expression SimpleExp where
           (e'', c') <- lift $ runStateT (eval1S e) c
           put c' >> return (Prod e'' e')
       EVar v    -> do
-        let e' = lookup v c
+        let e' = M.lookup v c
         maybe (lift Nothing) return e'
       Nmbr n    -> lift Nothing

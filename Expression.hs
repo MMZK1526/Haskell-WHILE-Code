@@ -2,6 +2,7 @@
 
 module Expression where
 
+import qualified Data.Map as M
 import Control.Monad.Trans.State
 import Control.Monad
 import Definitions ( Context )
@@ -32,7 +33,7 @@ class Expression e where
         then return [exp]
         -- Add a dash to represent an error state.
         -- Temporary solution; will find a more desciptive way of doing so.
-        else put (("_", undefined) : ctxt) >> return [exp]
+        else put (M.insert "_" undefined ctxt) >> return [exp]
       Just (e, c) -> do
         put c
         rest <- evalStar e
@@ -44,6 +45,6 @@ class Expression e where
   evalStarPrint c exp = do
     let (exps, ctxt) = runState (evalStar exp) c
     forM_ exps print
-    putStrLn $ if not (null ctxt) && fst (head ctxt) == "_"
+    putStrLn $ if not (null ctxt) && M.member "_" ctxt
       then "Evaluation failure due to having undefined variable(s)!"
       else "Final state: " ++ show ctxt

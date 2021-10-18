@@ -24,9 +24,14 @@ class Expression e where
   eval exp = evalState (evalS exp) M.empty
 
   -- | Return a list of Expressions, each one is one-step reduced from the 
+  -- previous one. Starting from an empty state, discarding the state.
+  evalStar :: e -> [e]
+  evalStar e = evalState (evalStarS e) M.empty
+
+  -- | Return a list of Expressions, each one is one-step reduced from the 
   -- previous one.
-  evalStar :: e -> State Context [e]
-  evalStar exp = do
+  evalStarS :: e -> State Context [e]
+  evalStarS exp = do
     ctxt <- get
     case runStateT (eval1S exp) ctxt of
       Nothing     -> if isNormal exp
@@ -36,14 +41,19 @@ class Expression e where
         else put (M.insert "_" undefined ctxt) >> return [exp]
       Just (e, c) -> do
         put c
-        rest <- evalStar e
+        rest <- evalStarS e
         return $ exp : rest
+
+  -- | Pretty prints the result of evalStar, starting from an empty state. 
+  -- Only works if the expression implements 'Show'.
+  evalStarPrint :: Show e => e -> IO ()
+  evalStarPrint = evalStarPrintS M.empty
 
   -- | Pretty prints the result of evalStar. Only works if the expression
   -- implements 'Show'.
-  evalStarPrint :: Show e => Context -> e -> IO ()
-  evalStarPrint c exp = do
-    let (exps, ctxt) = runState (evalStar exp) c
+  evalStarPrintS :: Show e => Context -> e -> IO ()
+  evalStarPrintS c exp = do
+    let (exps, ctxt) = runState (evalStarS exp) c
     forM_ exps print
     putStrLn $ if not (null ctxt) && M.member "_" ctxt
       then "Evaluation failure due to having undefined variable(s)!"

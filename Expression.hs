@@ -4,9 +4,7 @@ module Expression where
 
 import Control.Monad.Trans.State
 import Control.Monad
-
--- | The "State" or "Context" of the expression.
-type Context a = [(String, a)]
+import Definitions ( Context )
 
 -- | Type class for an expression based on recursively defined rules.
 class Expression e where
@@ -14,15 +12,15 @@ class Expression e where
   isNormal :: e -> Bool
 
   -- | Big-Step evaluation.
-  eval :: Context e -> e -> e
+  eval :: Context -> e -> e
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- wrong state.
-  eval1 :: e -> StateT (Context e) Maybe e
+  eval1 :: e -> StateT Context Maybe e
 
   -- | Return a list of Expressions, each one is one-step reduced from the 
   -- previous one.
-  evalStar :: e -> State (Context e) [e]
+  evalStar :: e -> State Context [e]
   evalStar exp = do
     ctxt <- get
     case runStateT (eval1 exp) ctxt of
@@ -30,7 +28,7 @@ class Expression e where
         then return [exp]
         -- Add a dash to represent an error state.
         -- Temporary solution; will find a more desciptive way of doing so.
-        else put (("_", exp) : ctxt) >> return [exp]
+        else put (("_", undefined) : ctxt) >> return [exp]
       Just (e, c) -> do
         put c
         rest <- evalStar e
@@ -38,7 +36,7 @@ class Expression e where
 
   -- | Pretty prints the result of evalStar. Only works if the expression
   -- implements 'Show'.
-  evalStarPrint :: Show e => Context e -> e -> IO ()
+  evalStarPrint :: Show e => Context -> e -> IO ()
   evalStarPrint c exp = do
     let (exps, ctxt) = runState (evalStar exp) c
     forM_ exps print

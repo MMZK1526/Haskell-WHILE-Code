@@ -5,50 +5,15 @@ module SimpleExp where
 
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
-import Expression ( Context, Expression(..) )
-import Utilities ( addBrace, applyOn )
+import Expression ( Expression(..) )
+import Definitions
 import Data.Maybe
 import Control.Monad.Trans.Maybe
-
--- | Simple Expression:
--- E ::= v | n | E + E | E * E
-data SimpleExp
-  = EVar {var :: String}
-  | Nmbr { num :: Integer }
-  | Plus { exp1 :: SimpleExp, exp2 :: SimpleExp }
-  | Prod { exp1 :: SimpleExp, exp2 :: SimpleExp }
-  deriving (Eq)
-
-{-# INLINE isNmbr #-}
-{-# INLINE isPlus #-}
-{-# INLINE isProd #-}
-{-# INLINE isEVar #-}
-isNmbr, isPlus, isProd, isEVar :: SimpleExp -> Bool
-isNmbr Nmbr {} = True
-isNmbr _       = False
-isPlus Plus {} = True
-isPlus _       = False
-isProd Prod {} = True
-isProd _       = False
-isEVar EVar {} = True
-isEVar _       = False
 
 {-# INLINE fromNmbr #-}
 fromNmbr :: SimpleExp -> Integer
 fromNmbr (Nmbr n) = n
 fromNmbr _        = error "Cannot extract from a non-value!"
-
-instance Show SimpleExp where
-  show (Nmbr n) = show n
-  show (EVar v) = v
-  show (Plus e e')
-    = show e ++
-      " + " ++
-      applyOn (isPlus e') addBrace (show e')
-  show (Prod e e')
-    = applyOn (isPlus e) addBrace (show e) ++
-      " * " ++
-      applyOn (not (isNmbr e' || isEVar e')) addBrace (show e')
 
 instance Num SimpleExp where
   x + y       = Plus x y
@@ -65,7 +30,7 @@ instance Expression SimpleExp where
   isNormal = isNmbr
 
   -- | Big-Step evaluation.
-  eval :: Context SimpleExp -> SimpleExp -> SimpleExp
+  eval :: Context -> SimpleExp -> SimpleExp
   eval _ (Nmbr n)    = Nmbr n -- B-Num
   eval c (Plus e e')          -- B-Add
     | isNmbr l && isNmbr r = Nmbr $ fromNmbr l + fromNmbr r
@@ -83,7 +48,7 @@ instance Expression SimpleExp where
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- wrong state.
-  eval1 :: SimpleExp -> StateT (Context SimpleExp) Maybe SimpleExp
+  eval1 :: SimpleExp -> StateT Context Maybe SimpleExp
   eval1 exp = do
     c <- get
     case exp of

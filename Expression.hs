@@ -5,10 +5,10 @@ module Expression where
 import Control.Monad.Trans.State
 import Control.Monad
 
+-- | The "State" or "Context" of the expression.
 type Context a = [(String, a)]
 
--- | Type class for a pure expression based on recursively defined rules.
--- It does not have a context (state).
+-- | Type class for an expression based on recursively defined rules.
 class Expression e where
   -- | Is normal (irreducible).
   isNormal :: e -> Bool

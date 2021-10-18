@@ -11,12 +11,12 @@ import Data.Maybe
 import Control.Monad.Trans.Maybe
 
 -- | Simple Expression:
--- E ::= n | E + E | E * E
+-- E ::= v | n | E + E | E * E
 data SimpleExp
-  = Nmbr { num :: Integer }
+  = EVar {var :: String}
+  | Nmbr { num :: Integer }
   | Plus { exp1 :: SimpleExp, exp2 :: SimpleExp }
   | Prod { exp1 :: SimpleExp, exp2 :: SimpleExp }
-  | EVar {var :: String}
   deriving (Eq)
 
 {-# INLINE isNmbr #-}
@@ -39,18 +39,16 @@ fromNmbr (Nmbr n) = n
 fromNmbr _        = error "Cannot extract from a non-value!"
 
 instance Show SimpleExp where
-  show exp = "Exp: " ++ show' exp
-    where
-      show' (Nmbr n) = show n
-      show' (EVar v) = v
-      show' (Plus e e')
-        = show' e ++
-          " + " ++
-          applyOn (isPlus e') addBrace (show' e')
-      show' (Prod e e')
-        = applyOn (isPlus e) addBrace (show' e) ++
-          " * " ++
-          applyOn (not (isNmbr e' || isEVar e')) addBrace (show' e')
+  show (Nmbr n) = show n
+  show (EVar v) = v
+  show (Plus e e')
+    = show e ++
+      " + " ++
+      applyOn (isPlus e') addBrace (show e')
+  show (Prod e e')
+    = applyOn (isPlus e) addBrace (show e) ++
+      " * " ++
+      applyOn (not (isNmbr e' || isEVar e')) addBrace (show e')
 
 instance Num SimpleExp where
   x + y       = Plus x y

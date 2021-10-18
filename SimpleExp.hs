@@ -2,7 +2,7 @@
 
 module SimpleExp where
 
-import Expression ( PureExpression(..) )
+import Expression ( Expression(..) )
 import Utilities ( addBrace, applyOn )
 
 -- | Simple Expression:
@@ -45,7 +45,7 @@ instance Num SimpleExp where
   signum      = Nmbr . signum . eval
   negate      = undefined
 
-instance PureExpression SimpleExp where
+instance Expression SimpleExp where
   -- | Is normal (irreducible).
   {-# INLINE isNormal #-}
   isNormal :: SimpleExp -> Bool

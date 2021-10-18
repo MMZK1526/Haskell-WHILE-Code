@@ -56,5 +56,5 @@ class Expression e where
     let (exps, ctxt) = runState (evalStarS exp) c
     forM_ exps print
     putStrLn $ if not (null ctxt) && M.member "_" ctxt
-      then "Evaluation failure due to having undefined variable(s)!"
+      then "Evaluation failed due to having undefined variable(s)!"
       else "Final state: " ++ show (M.toList ctxt)

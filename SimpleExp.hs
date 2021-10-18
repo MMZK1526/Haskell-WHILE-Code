@@ -84,29 +84,27 @@ instance Expression SimpleExp where
   eval c (EVar v) = maybe (EVar v) (eval c) (lookup v c)
 
   -- | Small-Step evaluation.
-  eval1 :: Context SimpleExp -> StateT SimpleExp Maybe (Context SimpleExp)
-  eval1 c = do
-    exp <- get
+  eval1 :: SimpleExp -> StateT (Context SimpleExp) Maybe SimpleExp
+  eval1 exp = do
+    c <- get
     case exp of
       Plus e e' -> case (e, e') of
-        (Nmbr n, Nmbr n') -> put (Nmbr $ n + n') >> return c -- W-EXP.ADD
-        (Nmbr n, e')      -> do                              -- W-EXP.RIGHT
-          (c', e'' :: SimpleExp) <- lift $ runStateT (eval1 c) e'
-          put (Plus (Nmbr n) e'') >> return c'
-        (e,      e')      -> do                              -- W-EXP.LEFT
-          (c', e'' :: SimpleExp) <- lift $ runStateT (eval1 c) e
-          put (Plus e'' e') >> return c'
+        (Nmbr n, Nmbr n') -> return (Nmbr $ n + n') -- W-EXP.ADD
+        (Nmbr n, e')      -> do                     -- W-EXP.RIGHT
+          (e'', c') <- lift $ runStateT (eval1 e') c
+          put c' >> return (Plus (Nmbr n) e'')
+        (e,      e')      -> do                     -- W-EXP.LEFT
+          (e'', c') <- lift $ runStateT (eval1 e) c
+          put c' >> return (Plus e'' e')
       Prod e e' -> case (e, e') of
-        (Nmbr n, Nmbr n') -> put (Nmbr $ n * n') >> return c -- W-EXP.MUL
-        (Nmbr n, e')      -> do                              -- W-EXP.RIGHT
-          (c', e'' :: SimpleExp) <- lift $ runStateT (eval1 c) e'
-          put (Prod (Nmbr n) e'') >> return c'
-        (e,      e')      -> do                              -- W-EXP.LEFT
-          (c', e'' :: SimpleExp) <- lift $ runStateT (eval1 c) e
-          put (Prod e'' e') >> return c'
+        (Nmbr n, Nmbr n') -> return (Nmbr $ n * n') -- W-EXP.MUL
+        (Nmbr n, e')      -> do                     -- W-EXP.RIGHT
+          (e'', c') <- lift $ runStateT (eval1 e') c
+          put c' >> return (Prod (Nmbr n) e'')
+        (e,      e')      -> do                     -- W-EXP.LEFT
+          (e'', c') <- lift $ runStateT (eval1 e) c
+          put c' >> return (Prod e'' e')
       EVar v    -> do
         let e' = lookup v c
-        if isJust e'
-          then put (fromJust e') >> return c
-          else lift Nothing
+        maybe (lift Nothing) return e'
       Nmbr n    -> lift Nothing

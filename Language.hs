@@ -24,7 +24,7 @@ instance Expression Language where
       Com (Asgn v exp) -> do                -- B-ASS
         exp <- evalS exp
         put $ M.insert v exp c
-        return $ Com Skip 
+        return $ Exp exp
       Com (c :+: c')   -> do                -- B-SEQ
         evalS $ Com c -- The result (if any) is discarded
         evalS $ Com c'

@@ -19,9 +19,9 @@ class Expression e where
   -- wrong state.
   eval1S :: e -> StateT Context Maybe e
 
-  -- | Big-Step evaluation, discarding the state.
-  eval :: Context -> e -> e
-  eval c exp = evalState (evalS exp) c
+  -- | Big-Step evaluation, starting from an empty state, discarding the state.
+  eval :: e -> e
+  eval exp = evalState (evalS exp) M.empty
 
   -- | Return a list of Expressions, each one is one-step reduced from the 
   -- previous one.

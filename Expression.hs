@@ -1,7 +1,8 @@
 module Expression where
 
--- | Type class for an expression based on recursively defined rules.
-class Expression e where
+-- | Type class for a pure expression based on recursively defined rules.
+-- It does not have a context (state).
+class PureExpression e where
   -- | Is normal (irreducible).
   isNormal :: e -> Bool
 

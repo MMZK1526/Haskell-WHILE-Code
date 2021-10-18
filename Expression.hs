@@ -47,4 +47,4 @@ class Expression e where
     forM_ exps print
     putStrLn $ if not (null ctxt) && M.member "_" ctxt
       then "Evaluation failure due to having undefined variable(s)!"
-      else "Final state: " ++ show ctxt
+      else "Final state: " ++ show (M.toList ctxt)

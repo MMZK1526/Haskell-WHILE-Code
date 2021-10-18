@@ -83,7 +83,8 @@ instance Expression SimpleExp where
       r = eval c e'
   eval c (EVar v) = maybe (EVar v) (eval c) (lookup v c)
 
-  -- | Small-Step evaluation.
+  -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
+  -- wrong state.
   eval1 :: SimpleExp -> StateT (Context SimpleExp) Maybe SimpleExp
   eval1 exp = do
     c <- get

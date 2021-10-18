@@ -25,10 +25,11 @@ class Expression e where
   evalStar :: e -> State (Context e) [e]
   evalStar exp = do
     ctxt <- get
-    let cur = runStateT (eval1 exp) ctxt
-    case cur of
+    case runStateT (eval1 exp) ctxt of
       Nothing     -> if isNormal exp
         then return [exp]
+        -- Add a dash to represent an error state.
+        -- Temporary solution; will find a more desciptive way of doing so.
         else put (("_", exp) : ctxt) >> return [exp]
       Just (e, c) -> do
         put c

@@ -24,13 +24,16 @@ instance Expression Compound where
     case lang of
       Ret exp      -> Ret <$> evalS exp
       Skip         -> return Skip -- B-SKIP
-      (Asgn v exp) -> do                -- B-ASS
+      (Asgn v exp) -> do          -- B-ASS
         exp <- evalS exp
         put $ M.insert v exp c
-        return $ Ret exp
-      (c :+: c')   -> do                -- B-SEQ
-        evalS c -- The result (if any) is discarded
-        evalS c'
+        return Skip
+      (c :+: c')   -> do          -- B-SEQ
+        r <- evalS c
+        case r of
+          Ret res -> return $ Ret res
+          Skip    -> evalS c'
+          _       -> return (r :+: c')
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- wrong state.

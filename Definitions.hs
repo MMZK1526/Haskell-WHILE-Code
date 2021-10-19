@@ -38,6 +38,14 @@ instance Show SimpleExp where
       " * " ++
       applyOn (not (isNmbr e' || isEVar e')) addBrace (show e')
 
+instance Num SimpleExp where
+  x + y       = Plus x y
+  x * y       = Prod x y
+  fromInteger = Nmbr
+  abs         = undefined
+  signum      = undefined
+  negate      = undefined
+
 -- | Compound:
 -- C ::= v = E | C; C | "skip"
 data Compound
@@ -48,8 +56,8 @@ data Compound
 
 instance Show Compound where
   show (Asgn v exp) = v ++ " := " ++ show exp
-  show (c :+: c')   = show c ++ ";\n" ++ show c'
-  show Skip         = ";\n"
+  show (c :+: c')   = show c ++ "\n" ++ show c'
+  show Skip         = ""
 
 -- | The entire language:
 -- L := E | C

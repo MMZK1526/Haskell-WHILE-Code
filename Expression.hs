@@ -38,7 +38,7 @@ class Expression e where
         then return [exp]
         -- Add a dash to represent an error state.
         -- Temporary solution; will find a more desciptive way of doing so.
-        else put (M.insert "_" undefined ctxt) >> return [exp]
+        else put (M.insert "_" 0 ctxt) >> return [exp]
       Just (e, c) -> do
         put c
         rest <- evalStarS e
@@ -54,7 +54,8 @@ class Expression e where
   evalStarPrintS :: Show e => Context -> e -> IO ()
   evalStarPrintS c exp = do
     let (exps, ctxt) = runState (evalStarS exp) c
-    forM_ exps print
+    forM_ (zip [0..] exps) $ 
+        \(i, exp) -> putStrLn $ "Step " ++ show i ++ ":\n" ++ show exp
     putStrLn $ if not (null ctxt) && M.member "_" ctxt
       then "Evaluation failed due to having undefined variable(s)!"
       else "Final state: " ++ show (M.toList ctxt)

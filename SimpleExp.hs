@@ -16,14 +16,6 @@ fromNmbr :: SimpleExp -> Integer
 fromNmbr (Nmbr n) = n
 fromNmbr _        = error "Cannot extract from a non-value!"
 
-instance Num SimpleExp where
-  x + y       = Plus x y
-  x * y       = Prod x y
-  fromInteger = Nmbr
-  abs         = undefined
-  signum      = undefined
-  negate      = undefined
-
 instance Expression SimpleExp where
   -- | Is normal (irreducible).
   {-# INLINE isNormal #-}

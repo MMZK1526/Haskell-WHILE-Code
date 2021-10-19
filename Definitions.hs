@@ -1,6 +1,6 @@
 module Definitions where
 
-import Data.Map
+import Data.Map ( Map )
 import Utilities ( addBrace, applyOn )
 
 -- | Simple Expression:

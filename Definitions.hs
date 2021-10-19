@@ -46,29 +46,21 @@ instance Num SimpleExp where
   signum      = undefined
   negate      = undefined
 
--- | Compound:
--- C ::= v = E | C; C | "skip"
+-- | This is our entire language.
+-- Compound:
+-- C ::= v = E | C; C | "skip" | "return" E
 data Compound
   = Asgn String SimpleExp
   | Compound :+: Compound
   | Skip
+  | Ret SimpleExp
   deriving Eq
 
 instance Show Compound where
   show (Asgn v exp) = v ++ " := " ++ show exp
   show (c :+: c')   = show c ++ "\n" ++ show c'
-  show Skip         = ""
-
--- | The entire language:
--- L := E | C
-data Language
-  = Exp SimpleExp
-  | Com Compound
-  deriving Eq
-
-instance Show Language where
-  show (Exp exp) = show exp
-  show (Com com) = show com
+  show Skip         = "[LINE FINISHED]"
+  show (Ret exp)    = show exp
 
 -- | The "State" or "Context" of the expression.
 type Context = Map String SimpleExp

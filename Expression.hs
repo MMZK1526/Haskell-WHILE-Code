@@ -55,7 +55,7 @@ class Expression e where
   evalStarPrintS c exp = do
     let (exps, ctxt) = runState (evalStarS exp) c
     forM_ (zip [0..] exps) $ 
-        \(i, exp) -> putStrLn $ "Step " ++ show i ++ ":\n" ++ show exp
+        \(i, exp) -> putStrLn $ "Step " ++ show i ++ ":\n" ++ show exp ++ "\n"
     putStrLn $ if not (null ctxt) && M.member "_" ctxt
       then "Evaluation failed due to having undefined variable(s)!"
       else "Final state: " ++ show (M.toList ctxt)

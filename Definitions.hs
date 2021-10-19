@@ -47,16 +47,16 @@ instance Num SimpleExp where
   negate      = undefined
 
 -- | This is our entire language.
--- Compound:
+-- Command:
 -- C ::= v = E | C; C | "skip" | "return" E
-data Compound
+data Command
   = Asgn String SimpleExp
-  | Compound :+: Compound
+  | Command :+: Command
   | Skip
   | Ret SimpleExp
   deriving Eq
 
-instance Show Compound where
+instance Show Command where
   show (Asgn v exp) = v ++ " := " ++ show exp
   show (c :+: c')   = show c ++ "\n" ++ show c'
   show Skip         = "[LINE FINISHED]"

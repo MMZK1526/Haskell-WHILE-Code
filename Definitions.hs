@@ -46,6 +46,36 @@ instance Num SimpleExp where
   signum      = undefined
   negate      = undefined
 
+-- | Condition:
+-- B ::= "true" | "false" | "not" B | B "and" B | B "or" B 
+-- | E < E | E = E | E > E | E <= E | E != E | E >= E
+data Condition
+  = T
+  | F
+  | Not Condition
+  | And Condition Condition
+  | Or  Condition Condition
+  | CLT  SimpleExp SimpleExp
+  | CGT  SimpleExp SimpleExp
+  | CEQ  SimpleExp SimpleExp
+  | CLE  SimpleExp SimpleExp
+  | CNE  SimpleExp SimpleExp
+  | CGE  SimpleExp SimpleExp
+  deriving Eq
+
+instance Show Condition where
+  show T          = "true"
+  show F          = "false"
+  show (Not b)    = '!' : show b
+  show (And b b') = show b ++ " & "  ++ show b'
+  show (Or  b b') = show b ++ " | "  ++ show b'
+  show (CLT e e') = show e ++ " < "  ++ show e'
+  show (CGT e e') = show e ++ " > "  ++ show e'
+  show (CEQ e e') = show e ++ " = "  ++ show e'
+  show (CLE e e') = show e ++ " <= " ++ show e'
+  show (CNE e e') = show e ++ " >= " ++ show e'
+  show (CGE e e') = show e ++ " != " ++ show e'
+
 -- | This is our entire language.
 -- Command:
 -- C ::= v = E | C; C | "skip" | "return" E
@@ -55,6 +85,7 @@ data Command
   | Skip
   | Ret SimpleExp
   deriving Eq
+infixr 2 :+:
 
 instance Show Command where
   show (Asgn v exp) = v ++ " := " ++ show exp

@@ -77,6 +77,11 @@ instance Show Condition where
   show (CGE e e') = show e ++ " != " ++ show e'
 
 -- | This is our entire language.
+-- Note here we have 2 kinds of answer configuration, namely "skip" and 
+-- "return" E (if E is in normal form as well).
+-- This is different to what's introduced in the course (where there is no
+-- "return"), but with "return" we can see the evaluated result without looking
+-- into the state.
 -- Command:
 -- C ::= v = E | C; C | "skip" | "return" E
 data Command

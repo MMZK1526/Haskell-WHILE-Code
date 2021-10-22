@@ -10,7 +10,7 @@ import Definitions
 import Control.Monad.Trans
 
 instance Expression Command where
-  
+  -- | Is normal (irreducible).
   {-# INLINE isNormal #-}
   isNormal :: Command -> Bool
   isNormal Skip    = True
@@ -36,7 +36,7 @@ instance Expression Command where
           _       -> return (r :+: c')
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
-  -- wrong state.
+  -- stuck state.
   eval1S :: Command -> StateT Context Maybe Command
   eval1S lang = do
     c <- get

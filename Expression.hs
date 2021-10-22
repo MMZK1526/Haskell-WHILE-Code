@@ -16,7 +16,7 @@ class Expression e where
   evalS :: e -> State Context e
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
-  -- wrong state.
+  -- stuck state.
   eval1S :: e -> StateT Context Maybe e
 
   -- | Big-Step evaluation, starting from an empty state, discarding the state.

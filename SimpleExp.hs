@@ -47,7 +47,7 @@ instance Expression SimpleExp where
           Just e  -> return e
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
-  -- wrong state.
+  -- stuck state.
   eval1S :: SimpleExp -> StateT Context Maybe SimpleExp
   eval1S exp = do
     c <- get

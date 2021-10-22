@@ -10,11 +10,13 @@ import Control.Monad
 import Control.Monad.Trans
 
 instance Expression Condition where
+  -- | Is normal (irreducible).
   isNormal :: Condition -> Bool
   isNormal T = True
   isNormal F = True
   isNormal _ = False
 
+  -- | Big-Step evaluation.
   evalS :: Condition -> State Context Condition
   evalS con = do
     c <- get
@@ -42,7 +44,9 @@ instance Expression Condition where
       CNE exp exp'           -> liftM2 CNE (evalS exp) (evalS exp') >>= evalS
       CGE (Nmbr n) (Nmbr n') -> return $ if n >= n' then T else F
       CGE exp exp'           -> liftM2 CGE (evalS exp) (evalS exp') >>= evalS
-
+ 
+  -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
+  -- stuck state.
   eval1S :: Condition -> StateT Context Maybe Condition
   eval1S con = case con of
     Not T                  -> return F

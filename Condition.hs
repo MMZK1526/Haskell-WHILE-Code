@@ -33,17 +33,47 @@ instance Expression Condition where
       Or  F        con       -> evalS con
       Or  con      con'      -> liftM2 Or  (evalS con) (evalS con') >>= evalS
       CLT (Nmbr n) (Nmbr n') -> return $ if n < n' then T else F
-      CLT exp exp'           -> liftM2 CLT (evalS exp) (evalS exp') >>= evalS
+      CLT exp exp'           -> do
+        l <- evalS exp
+        r <- evalS exp'
+        if isNmbr l && isNmbr r
+          then return $ if fromNmbr l < fromNmbr r then T else F
+          else return $ CLT l r
       CGT (Nmbr n) (Nmbr n') -> return $ if n > n' then T else F
-      CGT exp exp'           -> liftM2 CGT (evalS exp) (evalS exp') >>= evalS
+      CGT exp exp'           -> do
+        l <- evalS exp
+        r <- evalS exp'
+        if isNmbr l && isNmbr r
+          then return $ if fromNmbr l > fromNmbr r then T else F
+          else return $ CGT l r
       CEQ (Nmbr n) (Nmbr n') -> return $ if n == n' then T else F
-      CEQ exp exp'           -> liftM2 CEQ (evalS exp) (evalS exp') >>= evalS
+      CEQ exp exp'           -> do
+        l <- evalS exp
+        r <- evalS exp'
+        if isNmbr l && isNmbr r
+          then return $ if fromNmbr l == fromNmbr r then T else F
+          else return $ CEQ l r
       CLE (Nmbr n) (Nmbr n') -> return $ if n <= n' then T else F
-      CLE exp exp'           -> liftM2 CLE (evalS exp) (evalS exp') >>= evalS
+      CLE exp exp'           -> do
+        l <- evalS exp
+        r <- evalS exp'
+        if isNmbr l && isNmbr r
+          then return $ if fromNmbr l <= fromNmbr r then T else F
+          else return $ CLE l r
       CNE (Nmbr n) (Nmbr n') -> return $ if n /= n' then T else F
-      CNE exp exp'           -> liftM2 CNE (evalS exp) (evalS exp') >>= evalS
+      CNE exp exp'           -> do
+        l <- evalS exp
+        r <- evalS exp'
+        if isNmbr l && isNmbr r
+          then return $ if fromNmbr l /= fromNmbr r then T else F
+          else return $ CNE l r
       CGE (Nmbr n) (Nmbr n') -> return $ if n >= n' then T else F
-      CGE exp exp'           -> liftM2 CGE (evalS exp) (evalS exp') >>= evalS
+      CGE exp exp'           -> do
+        l <- evalS exp
+        r <- evalS exp'
+        if isNmbr l && isNmbr r
+          then return $ if fromNmbr l >= fromNmbr r then T else F
+          else return $ CGE l r
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- stuck state.

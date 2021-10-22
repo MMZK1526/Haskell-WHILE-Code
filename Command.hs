@@ -79,5 +79,6 @@ instance Expression Command where
 --   :+: Asgn "a" 1 
 --   :+: While (CLT (EVar "y") 0) (
 --         Asgn "a" (Prod (EVar "a") (EVar "y"))
---     :+: Asgn "y" ("y")
+--     :+: Asgn "y" (Mnus (EVar "y") 1)
 --       )
+--   :+: Ret (EVar "a")

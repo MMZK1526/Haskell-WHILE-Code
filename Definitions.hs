@@ -107,11 +107,13 @@ instance Show Command where
   show = show' 0
     where
       show' n (Asgn v exp) = replicate n ' ' ++ v ++ " := " ++ show exp
-      show' n (c :+: c')   = replicate n ' ' ++ show c ++ "\n" ++ show c'
+      show' n (c :+: c')   = replicate n ' ' ++ show c ++ "\n" ++ 
+                             replicate n ' ' ++ show c'
       show' _ Skip         = "[LINE FINISHED]"
       show' n (Ret exp)    = replicate n ' ' ++ show exp
       show' n (If b c c')  = replicate n ' ' ++ "if " ++ show b ++ "\n" ++ 
-                             show' (n + 2)c ++ "\nelse\n" ++ show' (n + 2) c'
+                             show' (n + 2)c ++ "\n" ++ 
+                             replicate n ' ' ++ "else\n" ++ show' (n + 2) c'
       show' n (While b c)  = replicate n ' ' ++ "while " ++ show b ++ "\n" ++ 
                              show' (n + 2) c
 

@@ -44,7 +44,7 @@ instance Expression Condition where
       CNE exp exp'           -> liftM2 CNE (evalS exp) (evalS exp') >>= evalS
       CGE (Nmbr n) (Nmbr n') -> return $ if n >= n' then T else F
       CGE exp exp'           -> liftM2 CGE (evalS exp) (evalS exp') >>= evalS
- 
+
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- stuck state.
   eval1S :: Condition -> StateT Context Maybe Condition
@@ -59,15 +59,21 @@ instance Expression Condition where
     Or  F        con       -> return con
     Or  con      con'      -> liftM2 Or  (eval1S con) (return con')
     CLT (Nmbr n) (Nmbr n') -> return $ if n < n' then T else F
+    CLT (Nmbr n) exp'      -> CLT (Nmbr n) <$> eval1S exp'
     CLT exp exp'           -> liftM2 CLT (eval1S exp) (return exp')
     CGT (Nmbr n) (Nmbr n') -> return $ if n > n' then T else F
+    CGT (Nmbr n) exp'      -> CGT (Nmbr n) <$> eval1S exp'
     CGT exp exp'           -> liftM2 CGT (eval1S exp) (return exp')
     CEQ (Nmbr n) (Nmbr n') -> return $ if n == n' then T else F
+    CEQ (Nmbr n) exp'      -> CEQ (Nmbr n) <$> eval1S exp'
     CEQ exp exp'           -> liftM2 CEQ (eval1S exp) (return exp')
     CLE (Nmbr n) (Nmbr n') -> return $ if n <= n' then T else F
+    CLE (Nmbr n) exp'      -> CLE (Nmbr n) <$> eval1S exp'
     CLE exp exp'           -> liftM2 CLE (eval1S exp) (return exp')
     CNE (Nmbr n) (Nmbr n') -> return $ if n /= n' then T else F
+    CNE (Nmbr n) exp'      -> CNE (Nmbr n) <$> eval1S exp'
     CNE exp exp'           -> liftM2 CNE (eval1S exp) (return exp')
     CGE (Nmbr n) (Nmbr n') -> return $ if n >= n' then T else F
+    CGE (Nmbr n) exp'      -> CGE (Nmbr n) <$> eval1S exp'
     CGE exp exp'           -> liftM2 CGE (eval1S exp) (return exp')
     _                      -> lift Nothing

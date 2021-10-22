@@ -83,12 +83,13 @@ instance Show Condition where
 -- "return"), but with "return" we can see the evaluated result without looking
 -- into the state.
 -- Command:
--- C ::= v = E | C; C | "skip" | "return" E
+-- C ::= v = E | C; C | "skip" | "return" E | "if" B "then" C "else" C
 data Command
   = Asgn String SimpleExp
   | Command :+: Command
   | Skip
   | Ret SimpleExp
+  | If Condition Command Command
   deriving Eq
 infixr 2 :+:
 
@@ -97,6 +98,8 @@ instance Show Command where
   show (c :+: c')   = show c ++ "\n" ++ show c'
   show Skip         = "[LINE FINISHED]"
   show (Ret exp)    = show exp
+  show (If b c c')  = "if " ++ show b ++ "\n  " ++ 
+                      show c ++ "\nelse\n  " ++ show c'
 
 -- | The "State" or "Context" of the expression.
 type Context = Map String SimpleExp

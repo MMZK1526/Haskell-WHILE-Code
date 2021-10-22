@@ -4,23 +4,27 @@ import Data.Map ( Map )
 import Utilities ( addBrace, applyOn )
 
 -- | Simple Expression:
--- E ::= v | n | E + E | E * E
+-- E ::= v | n | E + E | E - E |E * E
 data SimpleExp
   = EVar {var :: String}
   | Nmbr { num :: Integer }
   | Plus { exp1 :: SimpleExp, exp2 :: SimpleExp }
+  | Mnus { exp1 :: SimpleExp, exp2 :: SimpleExp }
   | Prod { exp1 :: SimpleExp, exp2 :: SimpleExp }
   deriving (Eq)
 
 {-# INLINE isNmbr #-}
 {-# INLINE isPlus #-}
+{-# INLINE isMnus #-}
 {-# INLINE isProd #-}
 {-# INLINE isEVar #-}
-isNmbr, isPlus, isProd, isEVar :: SimpleExp -> Bool
+isNmbr, isPlus, isMnus, isProd, isEVar :: SimpleExp -> Bool
 isNmbr Nmbr {} = True
 isNmbr _       = False
 isPlus Plus {} = True
 isPlus _       = False
+isMnus Mnus {} = True
+isMnus _       = False
 isProd Prod {} = True
 isProd _       = False
 isEVar EVar {} = True
@@ -32,9 +36,13 @@ instance Show SimpleExp where
   show (Plus e e')
     = show e ++
       " + " ++
-      applyOn (isPlus e') addBrace (show e')
+      applyOn (isPlus e' || isMnus e') addBrace (show e')
+  show (Mnus e e')
+    = show e ++
+      " - " ++
+      applyOn (isPlus e' || isMnus e') addBrace (show e')
   show (Prod e e')
-    = applyOn (isPlus e) addBrace (show e) ++
+    = applyOn (isPlus e || isMnus e) addBrace (show e) ++
       " * " ++
       applyOn (not (isNmbr e' || isEVar e')) addBrace (show e')
 
@@ -84,22 +92,28 @@ instance Show Condition where
 -- into the state.
 -- Command:
 -- C ::= v = E | C; C | "skip" | "return" E | "if" B "then" C "else" C
+-- | "while" B "do" C
 data Command
   = Asgn String SimpleExp
   | Command :+: Command
   | Skip
   | Ret SimpleExp
   | If Condition Command Command
+  | While Condition Command
   deriving Eq
 infixr 2 :+:
 
 instance Show Command where
-  show (Asgn v exp) = v ++ " := " ++ show exp
-  show (c :+: c')   = show c ++ "\n" ++ show c'
-  show Skip         = "[LINE FINISHED]"
-  show (Ret exp)    = show exp
-  show (If b c c')  = "if " ++ show b ++ "\n  " ++ 
-                      show c ++ "\nelse\n  " ++ show c'
+  show = show' 0
+    where
+      show' n (Asgn v exp) = replicate n ' ' ++ v ++ " := " ++ show exp
+      show' n (c :+: c')   = replicate n ' ' ++ show c ++ "\n" ++ show c'
+      show' _ Skip         = "[LINE FINISHED]"
+      show' n (Ret exp)    = replicate n ' ' ++ show exp
+      show' n (If b c c')  = replicate n ' ' ++ "if " ++ show b ++ "\n" ++ 
+                             show' (n + 2)c ++ "\nelse\n" ++ show' (n + 2) c'
+      show' n (While b c)  = replicate n ' ' ++ "while " ++ show b ++ "\n" ++ 
+                             show' (n + 2) c
 
 -- | The "State" or "Context" of the expression.
 type Context = Map String SimpleExp

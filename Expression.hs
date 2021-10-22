@@ -57,5 +57,5 @@ class Expression e where
     forM_ (zip [0..] exps) $ 
         \(i, exp) -> putStrLn $ "Step " ++ show i ++ ":\n" ++ show exp ++ "\n"
     putStrLn $ if not (null ctxt) && M.member "_" ctxt
-      then "Evaluation failed due to having undefined variable(s)!" ++ show (M.toList ctxt)
+      then "Evaluation failed due to having undefined variable(s)!"
       else "Final state: " ++ show (M.toList ctxt)

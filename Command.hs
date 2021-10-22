@@ -24,12 +24,12 @@ instance Expression Command where
     c <- get
     case lang of
       Ret exp    -> Ret <$> evalS exp
-      Skip       -> return Skip -- B-SKIP
-      Asgn v exp -> do          -- B-ASS
+      Skip       -> return Skip
+      Asgn v exp -> do
         exp <- evalS exp
         put $ M.insert v exp c
         return Skip
-      c :+: c'     -> do          -- B-SEQ
+      c :+: c'     -> do
         r <- evalS c
         case r of
           Ret res -> return $ Ret res
@@ -43,6 +43,7 @@ instance Expression Command where
           F -> evalS c'
           -- Stuck State
           _ -> return $ If cond c c'
+      While b c  -> evalS $ If b (While b c) Skip
 
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
@@ -72,3 +73,11 @@ instance Expression Command where
         return $ If b' com com'
       Ret exp         -> Ret <$> eval1S exp
       _               -> lift Nothing   
+
+-- foo :: Command
+-- foo = Asgn "y" (EVar "x")
+--   :+: Asgn "a" 1 
+--   :+: While (CLT (EVar "y") 0) (
+--         Asgn "a" (Prod (EVar "a") (EVar "y"))
+--     :+: Asgn "y" ("y")
+--       )

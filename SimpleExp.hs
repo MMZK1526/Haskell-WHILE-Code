@@ -34,6 +34,12 @@ instance Expression SimpleExp where
         if isNmbr l && isNmbr r
           then return $ Nmbr $ fromNmbr l + fromNmbr r
           else return $ l + r
+      Mnus e e' -> do              -- B-Neg
+        l <- evalS e
+        r <- evalS e'
+        if isNmbr l && isNmbr r
+          then return $ Nmbr $ fromNmbr l - fromNmbr r
+          else return $ l - r
       Prod e e' -> do              -- B-Mul
         l <- evalS e
         r <- evalS e'
@@ -60,6 +66,14 @@ instance Expression SimpleExp where
         (e,      e')      -> do                     -- W-EXP.LEFT
           (e'', c') <- lift $ runStateT (eval1S e) c
           put c' >> return (Plus e'' e')
+      Mnus e e' -> case (e, e') of
+        (Nmbr n, Nmbr n') -> return (Nmbr $ n - n') -- W-EXP.ADD
+        (Nmbr n, e')      -> do                     -- W-EXP.RIGHT
+          (e'', c') <- lift $ runStateT (eval1S e') c
+          put c' >> return (Mnus (Nmbr n) e'')
+        (e,      e')      -> do                     -- W-EXP.LEFT
+          (e'', c') <- lift $ runStateT (eval1S e) c
+          put c' >> return (Mnus e'' e')
       Prod e e' -> case (e, e') of
         (Nmbr n, Nmbr n') -> return (Nmbr $ n * n') -- W-EXP.MUL
         (Nmbr n, e')      -> do                     -- W-EXP.RIGHT

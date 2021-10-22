@@ -74,11 +74,11 @@ instance Expression Command where
       Ret exp         -> Ret <$> eval1S exp
       _               -> lift Nothing   
 
--- foo :: Command
--- foo = Asgn "y" (EVar "x")
---   :+: Asgn "a" 1 
---   :+: While (CLT (EVar "y") 0) (
---         Asgn "a" (Prod (EVar "a") (EVar "y"))
---     :+: Asgn "y" (Mnus (EVar "y") 1)
---       )
---   :+: Ret (EVar "a")
+comFact :: Command
+comFact = Asgn "y" (EVar "x")
+  :+: Asgn "a" 1 
+  :+: While (CGT (EVar "y") 0) (
+        Asgn "a" (Prod (EVar "a") (EVar "y"))
+    :+: Asgn "y" (Mnus (EVar "y") 1)
+      )
+  :+: Ret (EVar "a")

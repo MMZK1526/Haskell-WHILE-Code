@@ -43,7 +43,7 @@ instance Expression Command where
           F -> evalS c'
           -- Stuck State
           _ -> return $ If cond c c'
-      While b c  -> evalS $ If b (While b c) Skip
+      While b c  -> evalS $ If b (c :+: While b c) Skip
 
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or

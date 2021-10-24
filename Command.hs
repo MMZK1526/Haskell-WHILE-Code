@@ -54,8 +54,7 @@ instance Expression Command where
     case lang of
       Skip :+: com    -> return com   -- W-SEQ.SKIP
       com :+: com'    -> do           -- W-SEQ.LEFT
-        (lang', c') <- lift $ runStateT (eval1S com) c
-        put c'
+        lang' <- eval1S com
         case lang' of
           Ret (Nmbr n) -> return $ Ret $ Nmbr n -- The result is found
           com''        -> return $ com'' :+: com'
@@ -63,13 +62,12 @@ instance Expression Command where
         put $ M.insert v (Nmbr n) c
         return Skip
       Asgn v exp      -> do           -- W-ASS.EXP
-        (exp', c') <- lift $ runStateT (eval1S exp) c
-        put c'
+        exp' <- eval1S exp
         return $ Asgn v exp'
       If T com _      -> return com     -- W-COND.TRUE
       If F _ com'     -> return com'    -- W-COND.FALSE
       If b com com'   -> do             -- W-COND.BEXP
-        (b', c') <- lift $ runStateT (eval1S b) c
+        b' <- eval1S b
         return $ If b' com com'
       Ret exp         -> Ret <$> eval1S exp
       While b c  -> return $            -- W-WHILE
@@ -77,7 +75,8 @@ instance Expression Command where
       _               -> lift Nothing   
 
 comFact :: Command
-comFact = Asgn "y" (EVar "x")
+comFact = 
+      Asgn "y" (EVar "x")
   :+: Asgn "a" 1 
   :+: While (CGT (EVar "y") 0) (
         Asgn "a" (Prod (EVar "a") (EVar "y"))

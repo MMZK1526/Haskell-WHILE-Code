@@ -160,4 +160,4 @@ instance Num Value where
   fromInteger = VNum
   abs         = VNum . abs . fromNum
   signum      = VNum . signum . fromNum
-  negate x    = VNum $ -fromNum x
+  negate      = VNum . negate . fromNum

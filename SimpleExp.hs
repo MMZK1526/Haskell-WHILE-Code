@@ -179,6 +179,7 @@ expParser = eatBlankSpace >> parser' <* eof
       { parens = expParens
       , identifier = expIdentifier
       , reservedOp = expReservedOp
+      , reserved = expReserved
       } = makeTokenParser $ emptyDef
           { identStart = letter
           , identLetter = alphaNum
@@ -186,11 +187,14 @@ expParser = eatBlankSpace >> parser' <* eof
           , opStart = oneOf ""
           , opLetter = oneOf ""
           , reservedOpNames = ["+", "-", "*", "<=", ">=", "==", "!=", "<", ">"]
+          , reservedNames = ["true", "false"]
           }
     expTerm =
       expParens parser' <|>
       EVar <$> expIdentifier <|>
-      EVal . VNum <$> int
+      EVal . VNum <$> int <|>
+      EVal <$> (expReserved "true" >> return (VBool True)) <|>
+      EVal <$> (expReserved "false" >> return (VBool False))
     expTable =
       [ [ Infix (expReservedOp "*" >> return Prod) AssocLeft ]
       , [ Infix (expReservedOp "+" >> return Plus) AssocLeft

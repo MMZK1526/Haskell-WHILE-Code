@@ -19,6 +19,9 @@ data SimpleExp
   | ELE  { exp1 :: SimpleExp, exp2 :: SimpleExp }
   | EGE  { exp1 :: SimpleExp, exp2 :: SimpleExp }
   | ENE  { exp1 :: SimpleExp, exp2 :: SimpleExp }
+  -- | Not  { exp1 :: SimpleExp }
+  -- | And  { exp1 :: SimpleExp, exp2 :: SimpleExp }
+  -- | Or   { exp1 :: SimpleExp, exp2 :: SimpleExp }
   deriving (Eq)
 
 {-# INLINE getPrecedence #-}
@@ -34,49 +37,34 @@ getPrecedence ENE {} = 8
 getPrecedence EEQ {} = 8
 getPrecedence _      = 114514
 
+{-# INLINE getOpSymbol #-}
+getOpSymbol :: SimpleExp -> String
+getOpSymbol Prod {} = " * "
+getOpSymbol Plus {} = " + "
+getOpSymbol Mnus {} = " - "
+getOpSymbol ELT {} = " < "
+getOpSymbol EGT {} = " > "
+getOpSymbol ELE {} = " <= "
+getOpSymbol EGE {} = " >= "
+getOpSymbol ENE {} = " != "
+getOpSymbol EEQ {} = " = "
+getOpSymbol _      = undefined
+
 {-# INLINE precedenceOrdering #-}
 precedenceOrdering :: SimpleExp -> SimpleExp -> Ordering
-precedenceOrdering exp1 exp2 = compare (getPrecedence exp1) (getPrecedence exp2)
+precedenceOrdering exp1 exp2 
+  = compare (getPrecedence exp1) (getPrecedence exp2)
 
 instance Show SimpleExp where
   show (EVal v) = show v
   show (EVar v) = v
-  show exp@(Plus e e')
-    = applyOn (precedenceOrdering exp e' == GT) addBrace (show e) ++
-      " + " ++
-      applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
-  show exp@(Mnus e e')
+  show exp 
     = applyOn (precedenceOrdering exp e == GT) addBrace (show e) ++
-      " - " ++
+      getOpSymbol exp ++
       applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
-  show exp@(Prod e e')
-    = applyOn (precedenceOrdering exp e == GT) addBrace (show e) ++
-      " * " ++
-      applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
-  show exp@(ELT e e')
-    = applyOn (precedenceOrdering exp e == GT) addBrace (show e) ++
-      " < " ++
-      applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
-  show exp@(EGT e e')
-    = applyOn (precedenceOrdering exp e == GT) addBrace (show e) ++
-      " > " ++
-      applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
-  show exp@(ENE e e')
-    = applyOn (precedenceOrdering exp e == GT) addBrace (show e) ++
-      " != " ++
-      applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
-  show exp@(EEQ e e')
-    = applyOn (precedenceOrdering exp e == GT) addBrace (show e) ++
-      " = " ++
-      applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
-  show exp@(ELE e e')
-    = applyOn (precedenceOrdering exp e == GT) addBrace (show e) ++
-      " <= " ++
-      applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
-  show exp@(EGE e e')
-    = applyOn (precedenceOrdering exp e == GT) addBrace (show e) ++
-      " >= " ++
-      applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
+    where
+      e  = exp1 exp
+      e' = exp2 exp
 
 instance Num SimpleExp where
   x + y       = Plus x y

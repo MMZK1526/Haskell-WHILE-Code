@@ -8,8 +8,12 @@ import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
 import Expression ( Expression(..) )
 import Definitions
-import Data.Maybe
-import Control.Monad.Trans.Maybe
+import Text.Parsec hiding (State)
+import Text.Parsec.String
+import Text.Parsec.Expr
+import Text.Parsec.Token
+import Text.Parsec.Language
+import Utilities ( eatBlankSpace, int )
 
 {-# INLINE fromNmbr #-}
 fromNmbr :: SimpleExp -> Integer
@@ -83,3 +87,31 @@ instance Expression SimpleExp where
         let e' = M.lookup v c
         maybe (lift Nothing) return e'
       Nmbr n    -> lift Nothing
+
+-- | The parser for SimpleExp
+expParser :: Parser SimpleExp
+expParser = eatBlankSpace >> parser' <* eof 
+  where
+    parser' = buildExpressionParser expTable expTerm <?> "Expression"
+    TokenParser 
+      { parens = expParens
+      , identifier = expIdentifier
+      , reservedOp = expReservedOp
+      } = makeTokenParser $ emptyDef
+          { identStart = letter
+          , identLetter = alphaNum
+          , caseSensitive = True
+          , opStart = oneOf ""
+          , opLetter = oneOf ""
+          , reservedOpNames = ["+", "-", "*"]
+          }
+    expTerm =
+      expParens parser' <|>
+      EVar <$> expIdentifier <|>
+      Nmbr <$> int
+    expTable = 
+      [ [ Infix (expReservedOp "*" >> return Prod) AssocLeft ]
+      , [ Infix (expReservedOp "+" >> return Plus) AssocLeft
+        , Infix (expReservedOp "-" >> return Mnus) AssocLeft
+        ]
+      ]

@@ -8,6 +8,13 @@ import Definitions
 import Control.Monad.Trans.State
 import Control.Monad
 import Control.Monad.Trans
+import Text.Parsec hiding (State)
+import Text.Parsec.String
+import Text.Parsec.Expr
+import Text.Parsec.Token
+import Text.Parsec.Language
+import Utilities ( eatBlankSpace, int )
+import Control.Monad.Identity
 
 instance Expression Condition where
   -- | Is normal (irreducible).
@@ -107,3 +114,36 @@ instance Expression Condition where
     CGE (Nmbr n) exp'      -> CGE (Nmbr n) <$> eval1S exp'
     CGE exp exp'           -> liftM2 CGE (eval1S exp) (return exp')
     _                      -> lift Nothing
+
+-- -- | The parser for SimpleExp.
+-- condParser :: Parser Condition
+-- condParser = eatBlankSpace >> parser' <* eof
+--   where
+--     parser' :: Parsec String u Condition
+--     parser' = buildExpressionParser condTable condTerm <?> "Condition"
+--     TokenParser
+--       { parens = condParens
+--       , identifier = condIdentifier
+--       , reservedOp = condReservedOp
+--       , reserved = condReserved
+--       } = makeTokenParser $ emptyDef
+--           { identStart = letter
+--           , identLetter = alphaNum
+--           , caseSensitive = True
+--           , opStart = oneOf ""
+--           , opLetter = oneOf ""
+--           , reservedOpNames = 
+--               ["<", ">", "=", "<=", ">=", "!=", "&", "|", "!", ":="]
+--           , reservedNames = ["true", "false"]
+--           }
+--     condTerm :: Parsec String u Condition
+--     condTerm =
+--       condParens parser' <|>
+--       (condReserved "true" >> return T) <|>
+--       (condReserved "false" >> return F)
+--     condTable :: [[Operator String u Identity Condition]]
+--     condTable = 
+--       [ [ Infix (condReservedOp ">=" >> return undefined) AssocLeft
+--         , Infix (condReservedOp "-" >> return undefined) AssocLeft
+--         ]
+--       ]

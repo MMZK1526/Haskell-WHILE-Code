@@ -5,7 +5,7 @@ module Expression where
 import qualified Data.Map as M
 import Control.Monad.Trans.State
 import Control.Monad
-import Definitions ( Context )
+import Definitions
 
 -- | Type class for an expression based on recursively defined rules.
 class Expression e where

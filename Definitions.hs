@@ -4,7 +4,7 @@ import Data.Map ( Map )
 import Utilities ( addBrace, applyOn )
 
 -- | Simple Expression:
--- E ::= v | n | E + E | E - E |E * E
+-- E ::= v | n | E + E | E - E | E * E
 data SimpleExp
   = EVar {var :: String}
   | Nmbr { num :: Integer }
@@ -63,12 +63,12 @@ data Condition
   | Not Condition
   | And Condition Condition
   | Or  Condition Condition
-  | CLT  SimpleExp SimpleExp
-  | CGT  SimpleExp SimpleExp
-  | CEQ  SimpleExp SimpleExp
-  | CLE  SimpleExp SimpleExp
-  | CNE  SimpleExp SimpleExp
-  | CGE  SimpleExp SimpleExp
+  | CLT SimpleExp SimpleExp
+  | CGT SimpleExp SimpleExp
+  | CEQ SimpleExp SimpleExp
+  | CLE SimpleExp SimpleExp
+  | CNE SimpleExp SimpleExp
+  | CGE SimpleExp SimpleExp
   deriving Eq
 
 instance Show Condition where

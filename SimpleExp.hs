@@ -32,56 +32,74 @@ instance Expression SimpleExp where
       Plus e e' -> do              -- B-Add
         EVal l <- evalS e
         EVal r <- evalS e'
-        return $ EVal $ VNum $ fromNum l + fromNum r
+        if isNum l && isNum r
+          then return $ EVal $ VNum $ fromNum l + fromNum r
+          else lift Nothing
       Mnus e e' -> do              -- B-Neg
         EVal l <- evalS e
         EVal r <- evalS e'
-        return $ EVal $ VNum $ fromNum l - fromNum r
+        if isNum l && isNum r
+          then return $ EVal $ VNum $ fromNum l - fromNum r
+          else lift Nothing
       Prod e e' -> do              -- B-Mul
         EVal l <- evalS e
         EVal r <- evalS e'
-        return $ EVal $ VNum $ fromNum l * fromNum r
+        if isNum l && isNum r
+          then return $ EVal $ VNum $ fromNum l * fromNum r
+          else lift Nothing
       EVar v    -> do              -- B-Num
         let mv = M.lookup v c
         case mv of
           Nothing -> return $ EVar v
           Just e  -> return e
-      ELT (EVal (VNum n)) (EVal (VNum n')) ->    -- B-LT
+      ELT (EVal (VNum n)) (EVal (VNum n')) -> -- B-LT
         return $ if n < n' then eTOP else eBTM
       ELT e e'           -> do 
         EVal l <- evalS e
         EVal r <- evalS e'
-        return $ if fromNum l < fromNum r then eTOP else eBTM
-      EGT (EVal (VNum n)) (EVal (VNum n')) ->    -- B-GT
+        if isNum l && isNum r
+          then return $ if fromNum l < fromNum r then eTOP else eBTM
+          else lift Nothing
+      EGT (EVal (VNum n)) (EVal (VNum n')) -> -- B-GT
         return $ if n > n' then eTOP else eBTM
       EGT e e'           -> do
         EVal l <- evalS e
         EVal r <- evalS e'
-        return $ if fromNum l > fromNum r then eTOP else eBTM
-      EEQ (EVal (VNum n)) (EVal (VNum n')) ->    -- B-EQ
+        if isNum l && isNum r
+          then return $ if fromNum l > fromNum r then eTOP else eBTM
+          else lift Nothing
+      EEQ (EVal (VNum n)) (EVal (VNum n')) -> -- B-EQ
         return $ if n == n' then eTOP else eBTM
       EEQ e e'           -> do
         EVal l <- evalS e
         EVal r <- evalS e'
-        return $ if fromNum l == fromNum r then eTOP else eBTM
-      ELE (EVal (VNum n)) (EVal (VNum n')) ->    -- B-LE
+        if isNum l && isNum r
+          then return $ if fromNum l == fromNum r then eTOP else eBTM
+          else lift Nothing
+      ELE (EVal (VNum n)) (EVal (VNum n')) -> -- B-LE
          return $ if n <= n' then eTOP else eBTM
       ELE e e'           -> do
         EVal l <- evalS e
         EVal r <- evalS e'
-        return $ if fromNum l <= fromNum r then eTOP else eBTM
-      ENE (EVal (VNum n)) (EVal (VNum n')) ->    -- B-NE
+        if isNum l && isNum r
+          then return $ if fromNum l <= fromNum r then eTOP else eBTM
+          else lift Nothing
+      ENE (EVal (VNum n)) (EVal (VNum n')) -> -- B-NE
          return $ if n /= n' then eTOP else eBTM
       ENE e e'           -> do
         EVal l <- evalS e
         EVal r <- evalS e'
-        return $ if fromNum l /= fromNum r then eTOP else eBTM
-      EGE (EVal (VNum n)) (EVal (VNum n')) ->    -- B-GE
+        if isNum l && isNum r
+          then return $ if fromNum l /= fromNum r then eTOP else eBTM
+          else lift Nothing
+      EGE (EVal (VNum n)) (EVal (VNum n')) -> -- B-GE
          return $ if n >= n' then eTOP else eBTM
       EGE e e'           -> do
         EVal l <- evalS e
         EVal r <- evalS e'
-        return $ if fromNum l >= fromNum r then eTOP else eBTM
+        if isNum l && isNum r
+          then return $ if fromNum l >= fromNum r then eTOP else eBTM
+          else lift Nothing
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- stuck state.

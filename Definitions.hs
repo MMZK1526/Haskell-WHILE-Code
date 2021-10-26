@@ -138,6 +138,11 @@ isNum _         = False
 isBool VBool {} = True
 isBool _        = False
 
+{-# INLINE getType #-}
+getType :: Value -> String
+getType VNum {}  = "Integer"
+getType VBool {} = "Bool"
+
 {-# INLINE fromNum #-}
 fromNum :: Value -> Integer
 fromNum (VNum n) = n

@@ -67,11 +67,13 @@ instance Expression SimpleExp where
           else lift Nothing
       EEQ (EVal (VNum n)) (EVal (VNum n')) -> -- B-EQ
         return $ if n == n' then eTOP else eBTM
+      EEQ (EVal (VBool b)) (EVal (VBool b')) -> 
+        return $ if b == b' then eTOP else eBTM
       EEQ e e'           -> do
         EVal l <- evalS e
         EVal r <- evalS e'
-        if isNum l && isNum r
-          then return $ if fromNum l == fromNum r then eTOP else eBTM
+        if getType l == getType r
+          then evalS $ EEQ (EVal l) (EVal r)
           else lift Nothing
       ELE (EVal (VNum n)) (EVal (VNum n')) -> -- B-LE
          return $ if n <= n' then eTOP else eBTM
@@ -83,11 +85,13 @@ instance Expression SimpleExp where
           else lift Nothing
       ENE (EVal (VNum n)) (EVal (VNum n')) -> -- B-NE
          return $ if n /= n' then eTOP else eBTM
+      ENE (EVal (VBool b)) (EVal (VBool b')) -> 
+        return $ if b /= b' then eTOP else eBTM
       ENE e e'           -> do
         EVal l <- evalS e
         EVal r <- evalS e'
-        if isNum l && isNum r
-          then return $ if fromNum l /= fromNum r then eTOP else eBTM
+        if getType l == getType r
+          then evalS $ ENE (EVal l) (EVal r)
           else lift Nothing
       EGE (EVal (VNum n)) (EVal (VNum n')) -> -- B-GE
          return $ if n >= n' then eTOP else eBTM
@@ -143,8 +147,10 @@ instance Expression SimpleExp where
         -> liftM2 EGT (eval1S e) (return e')
       EEQ (EVal (VNum n)) (EVal (VNum n'))
         -> return $ if n == n' then eTOP else eBTM
-      EEQ (EVal (VNum n)) e'
-        -> EEQ (EVal (VNum n)) <$> eval1S e'
+      EEQ (EVal (VBool b)) (EVal (VBool b'))
+        -> return $ if b == b' then eTOP else eBTM
+      EEQ (EVal v) e'
+        -> EEQ (EVal v) <$> eval1S e'
       EEQ e e'
         -> liftM2 EEQ (eval1S e) (return e')
       ELE (EVal (VNum n)) (EVal (VNum n'))
@@ -155,8 +161,10 @@ instance Expression SimpleExp where
         -> liftM2 ELE (eval1S e) (return e')
       ENE (EVal (VNum n)) (EVal (VNum n'))
         -> return $ if n /= n' then eTOP else eBTM
-      ENE (EVal (VNum n)) e'
-        -> ENE (EVal (VNum n)) <$> eval1S e'
+      ENE (EVal (VBool b)) (EVal (VBool b'))
+        -> return $ if b /= b' then eTOP else eBTM
+      ENE (EVal v) e'
+        -> ENE (EVal v) <$> eval1S e'
       ENE e e'
         -> liftM2 ENE (eval1S e) (return e')
       EGE (EVal (VNum n)) (EVal (VNum n'))

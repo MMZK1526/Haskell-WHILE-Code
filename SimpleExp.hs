@@ -29,6 +29,8 @@ instance Expression SimpleExp where
     c <- get
     case e of
       EVal v    -> return $ EVal v -- B-Val
+      EVar v    ->                 -- B-Var
+        EVal <$> lift (M.lookup v c)
       Plus e e' -> do              -- B-Add
         EVal l <- evalS e
         EVal r <- evalS e'
@@ -47,14 +49,9 @@ instance Expression SimpleExp where
         if isNum l && isNum r
           then return $ EVal $ VNum $ fromNum l * fromNum r
           else lift Nothing
-      EVar v    -> do              -- B-Num
-        let mv = M.lookup v c
-        case mv of
-          Nothing -> return $ EVar v
-          Just e  -> return e
       ELT (EVal (VNum n)) (EVal (VNum n')) -> -- B-LT
         return $ if n < n' then eTOP else eBTM
-      ELT e e'           -> do 
+      ELT e e'           -> do
         EVal l <- evalS e
         EVal r <- evalS e'
         if isNum l && isNum r
@@ -108,78 +105,77 @@ instance Expression SimpleExp where
     c <- get
     case e of
       Plus e e' -> case (e, e') of -- W-EXP.ADD
-        (EVal (VNum n), EVal (VNum n')) 
-          -> return (EVal $ VNum $ n + n') 
-        (EVal (VNum n), e')      
+        (EVal (VNum n), EVal (VNum n'))
+          -> return (EVal $ VNum $ n + n')
+        (EVal (VNum n), e')
           -> Plus (EVal (VNum n)) <$> eval1S e'
         (e,      e') -> do
           e <- eval1S e
           return (Plus e e')
       Mnus e e' -> case (e, e') of -- W-EXP.MINUS
-        (EVal (VNum n), EVal (VNum n')) 
+        (EVal (VNum n), EVal (VNum n'))
           -> return (EVal $ VNum $ n - n')
         (EVal (VNum n), e')
           -> Mnus (EVal (VNum n)) <$> eval1S e'
-        (e,      e') -> do             
+        (e,      e') -> do
           e <- eval1S e
           return (Mnus e e')
       Prod e e' -> case (e, e') of -- W-EXP.MUL
-        (EVal (VNum n), EVal (VNum n')) 
+        (EVal (VNum n), EVal (VNum n'))
           -> return (EVal $ VNum $ n * n')
-        (EVal (VNum n), e')     
+        (EVal (VNum n), e')
           -> Prod (EVal (VNum n)) <$> eval1S e'
-        (e,      e') -> do               
+        (e,      e') -> do
           e <- eval1S e
           return (Prod e e')
       -- COMPARISON RULES:
-      ELT (EVal (VNum n)) (EVal (VNum n')) 
+      ELT (EVal (VNum n)) (EVal (VNum n'))
         -> return $ if n < n' then eTOP else eBTM
-      ELT (EVal (VNum n)) e'      
+      ELT (EVal (VNum n)) e'
         -> ELT (EVal (VNum n)) <$> eval1S e'
-      ELT e e'           
+      ELT e e'
         -> liftM2 ELT (eval1S e) (return e')
-      EGT (EVal (VNum n)) (EVal (VNum n')) 
+      EGT (EVal (VNum n)) (EVal (VNum n'))
         -> return $ if n > n' then eTOP else eBTM
-      EGT (EVal (VNum n)) e'      
+      EGT (EVal (VNum n)) e'
         -> EGT (EVal (VNum n)) <$> eval1S e'
-      EGT e e'          
+      EGT e e'
         -> liftM2 EGT (eval1S e) (return e')
-      EEQ (EVal (VNum n)) (EVal (VNum n')) 
+      EEQ (EVal (VNum n)) (EVal (VNum n'))
         -> return $ if n == n' then eTOP else eBTM
-      EEQ (EVal (VNum n)) e'      
+      EEQ (EVal (VNum n)) e'
         -> EEQ (EVal (VNum n)) <$> eval1S e'
-      EEQ e e'           
+      EEQ e e'
         -> liftM2 EEQ (eval1S e) (return e')
-      ELE (EVal (VNum n)) (EVal (VNum n')) 
+      ELE (EVal (VNum n)) (EVal (VNum n'))
         -> return $ if n <= n' then eTOP else eBTM
-      ELE (EVal (VNum n)) e'      
+      ELE (EVal (VNum n)) e'
         -> ELE (EVal (VNum n)) <$> eval1S e'
-      ELE e e'           
+      ELE e e'
         -> liftM2 ELE (eval1S e) (return e')
-      ENE (EVal (VNum n)) (EVal (VNum n')) 
+      ENE (EVal (VNum n)) (EVal (VNum n'))
         -> return $ if n /= n' then eTOP else eBTM
-      ENE (EVal (VNum n)) e'      
+      ENE (EVal (VNum n)) e'
         -> ENE (EVal (VNum n)) <$> eval1S e'
-      ENE e e'           
+      ENE e e'
         -> liftM2 ENE (eval1S e) (return e')
-      EGE (EVal (VNum n)) (EVal (VNum n')) 
+      EGE (EVal (VNum n)) (EVal (VNum n'))
         -> return $ if n >= n' then eTOP else eBTM
-      EGE (EVal (VNum n)) e'      
+      EGE (EVal (VNum n)) e'
         -> EGE (EVal (VNum n)) <$> eval1S e'
-      EGE e e'           
+      EGE e e'
         -> liftM2 EGE (eval1S e) (return e')
       -- BASE RULES:
       EVar v -> do
-        let e' = M.lookup v c
-        maybe (lift Nothing) return e'
+        EVal <$> lift (M.lookup v c)
       EVal _ -> lift Nothing
 
 -- | The parser for SimpleExp
 expParser :: Parser SimpleExp
-expParser = eatBlankSpace >> parser' <* eof 
+expParser = eatBlankSpace >> parser' <* eof
   where
     parser' = buildExpressionParser expTable expTerm <?> "Expression"
-    TokenParser 
+    TokenParser
       { parens = expParens
       , identifier = expIdentifier
       , reservedOp = expReservedOp
@@ -195,7 +191,7 @@ expParser = eatBlankSpace >> parser' <* eof
       expParens parser' <|>
       EVar <$> expIdentifier <|>
       EVal . VNum <$> int
-    expTable = 
+    expTable =
       [ [ Infix (expReservedOp "*" >> return Prod) AssocLeft ]
       , [ Infix (expReservedOp "+" >> return Plus) AssocLeft
         , Infix (expReservedOp "-" >> return Mnus) AssocLeft

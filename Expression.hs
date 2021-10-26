@@ -37,7 +37,7 @@ class Expression e where
       Nothing     -> if isNormal exp
         then return [exp]
         -- Add a dash to represent an error state.
-        -- Temporary solution; will find a more desciptive way of doing so.
+        -- Temporary solution; wilVNuml find a more desciptive way of doing so.
         else put (M.insert "_" 0 ctxt) >> return [exp]
       Just (e, c) -> do
         put c

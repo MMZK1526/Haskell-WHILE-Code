@@ -24,9 +24,9 @@ instance Expression Command where
     case lang of
       Ret exp    -> Ret <$> evalS exp
       Skip       -> return Skip
-      Asgn v exp -> do
-        exp <- evalS exp
-        put $ M.insert v exp c
+      Asgn x exp -> do
+        EVal v <- evalS exp
+        put $ M.insert x v c
         return Skip
       c :+: c'     -> do
         r <- evalS c
@@ -57,7 +57,7 @@ instance Expression Command where
           Ret (EVal v) -> return $ Ret $ EVal v
           com''        -> return $ com'' :+: com'
       Asgn x (EVal v) -> do         -- W-ASS.NUM
-        put $ M.insert x (EVal v) c
+        put $ M.insert x v c
         return Skip
       Asgn x exp -> do              -- W-ASS.EXP
         exp' <- eval1S exp

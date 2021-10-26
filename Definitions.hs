@@ -119,10 +119,7 @@ instance Show Command where
                              show' (n + 2) c
 
 -- | The "State" or "Context" of the expression.
--- Normally, the SimpleExp in the context is evaluated, so I could just change
--- it to Value. I did so for potential support for lazy evaluation... I guess?
--- Probably not going to happen XD.
-type Context = Map String SimpleExp
+type Context = Map String Value
 
 -- | The "result" type that encodes the type information of the value.
 data Value = VNum Integer | VBool Bool
@@ -156,3 +153,11 @@ fromBool _         = error "Extract from invalid boolean!"
 eTOP, eBTM :: SimpleExp
 eTOP = EVal $ VBool True
 eBTM = EVal $ VBool False
+
+instance Num Value where
+  x + y       = VNum $ fromNum x + fromNum y
+  x * y       = VNum $ fromNum x * fromNum y
+  fromInteger = VNum
+  abs         = VNum . abs . fromNum
+  signum      = VNum . signum . fromNum
+  negate x    = VNum $ -fromNum x

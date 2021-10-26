@@ -13,15 +13,15 @@ class Expression e where
   isNormal :: e -> Bool
 
   -- | Big-Step evaluation.
-  evalS :: e -> State Context e
+  evalS :: e -> StateT Context Maybe e
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- stuck state.
   eval1S :: e -> StateT Context Maybe e
 
   -- | Big-Step evaluation, starting from an empty state, discarding the state.
-  eval :: e -> e
-  eval exp = evalState (evalS exp) M.empty
+  eval :: e -> Maybe e
+  eval exp = evalStateT (evalS exp) M.empty
 
   -- | Return a list of Expressions, each one is one-step reduced from the 
   -- previous one. Starting from an empty state, discarding the state.

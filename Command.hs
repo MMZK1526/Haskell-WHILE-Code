@@ -6,7 +6,6 @@ import qualified Data.Map as M
 import Control.Monad.Trans.State
 import SimpleExp
 import Expression
-import Condition
 import Definitions
 import Control.Monad.Trans
 
@@ -19,7 +18,7 @@ instance Expression Command where
   isNormal _       = False
 
   -- | Big-Step evaluation.
-  evalS :: Command -> State Context Command
+  evalS :: Command -> StateT Context Maybe Command
   evalS lang = do
     c <- get
     case lang of
@@ -37,14 +36,13 @@ instance Expression Command where
           -- Stuck State
           _       -> return (r :+: c')
       If b c c'  -> do
-        cond <- evalS b
+        EVal cond <- evalS b
         case cond of
-          T -> evalS c
-          F -> evalS c'
+          VBool True  -> evalS c
+          VBool False -> evalS c'
           -- Stuck State
-          _ -> return $ If cond c c'
+          _ -> lift Nothing
       While b c  -> evalS $ If b (c :+: While b c) Skip
-
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- stuck state.
@@ -52,25 +50,27 @@ instance Expression Command where
   eval1S lang = do
     c <- get
     case lang of
-      Skip :+: com    -> return com   -- W-SEQ.SKIP
-      com :+: com'    -> do           -- W-SEQ.LEFT
-        lang' <- eval1S com
+      Skip :+: com -> return com    -- W-SEQ.SKIP
+      com :+: com' -> do            -- W-SEQ.LEFT
+        lang' <- eval1S com  
         case lang' of
-          Ret (Nmbr n) -> return $ Ret $ Nmbr n -- The result is found
+          Ret (EVal v) -> return $ Ret $ EVal v
           com''        -> return $ com'' :+: com'
-      Asgn v (Nmbr n) -> do           -- W-ASS.NUM
-        put $ M.insert v (Nmbr n) c
+      Asgn x (EVal v) -> do         -- W-ASS.NUM
+        put $ M.insert x (EVal v) c
         return Skip
-      Asgn v exp      -> do           -- W-ASS.EXP
+      Asgn x exp -> do              -- W-ASS.EXP
         exp' <- eval1S exp
-        return $ Asgn v exp'
-      If T com _      -> return com     -- W-COND.TRUE
-      If F _ com'     -> return com'    -- W-COND.FALSE
-      If b com com'   -> do             -- W-COND.BEXP
+        return $ Asgn x exp'
+      If (EVal (VBool True)) com _  -- W-COND.TRUE
+        -> return com    
+      If (EVal (VBool False)) _ com -- W-COND.FALSE     
+        -> return com  
+      If b com com' -> do          -- W-COND.BEXP
         b' <- eval1S b
         return $ If b' com com'
-      Ret exp         -> Ret <$> eval1S exp
-      While b c  -> return $            -- W-WHILE
+      Ret exp    -> Ret <$> eval1S exp
+      While b c  -> return $       -- W-WHILE
         If b (c :+: While b c) Skip
       _               -> lift Nothing   
 
@@ -78,7 +78,7 @@ comFact :: Command
 comFact = 
       Asgn "y" (EVar "x")
   :+: Asgn "a" 1 
-  :+: While (CGT (EVar "y") 0) (
+  :+: While (EGT (EVar "y") 0) (
         Asgn "a" (Prod (EVar "a") (EVar "y"))
     :+: Asgn "y" (Mnus (EVar "y") 1)
       )

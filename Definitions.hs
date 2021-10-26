@@ -3,86 +3,88 @@ module Definitions where
 import Data.Map ( Map )
 import Utilities ( addBrace, applyOn )
 
--- | Simple Expression:
--- E ::= v | n | E + E | E - E | E * E
+-- | For simplicity, I have combined the conditionals into expression.
+-- Simple Expression:
+-- E ::= v | n | E + E | E - E | E * E | "true" | "false" | "not" E | E "and" E
+-- | E "or" E  | E < E | E = E | E > E | E <= E | E != E | E >= E
 data SimpleExp
   = EVar {var :: String}
-  | Nmbr { num :: Integer }
+  | EVal {val :: Value} -- Number or Boolean
   | Plus { exp1 :: SimpleExp, exp2 :: SimpleExp }
   | Mnus { exp1 :: SimpleExp, exp2 :: SimpleExp }
   | Prod { exp1 :: SimpleExp, exp2 :: SimpleExp }
+  | ELT  { exp1 :: SimpleExp, exp2 :: SimpleExp }
+  | EGT  { exp1 :: SimpleExp, exp2 :: SimpleExp }
+  | EEQ  { exp1 :: SimpleExp, exp2 :: SimpleExp }
+  | ELE  { exp1 :: SimpleExp, exp2 :: SimpleExp }
+  | EGE  { exp1 :: SimpleExp, exp2 :: SimpleExp }
+  | ENE  { exp1 :: SimpleExp, exp2 :: SimpleExp }
   deriving (Eq)
 
-{-# INLINE isNmbr #-}
-{-# INLINE isPlus #-}
-{-# INLINE isMnus #-}
-{-# INLINE isProd #-}
-{-# INLINE isEVar #-}
-isNmbr, isPlus, isMnus, isProd, isEVar :: SimpleExp -> Bool
-isNmbr Nmbr {} = True
-isNmbr _       = False
-isPlus Plus {} = True
-isPlus _       = False
-isMnus Mnus {} = True
-isMnus _       = False
-isProd Prod {} = True
-isProd _       = False
-isEVar EVar {} = True
-isEVar _       = False
+{-# INLINE getPrecedence #-}
+getPrecedence :: SimpleExp -> Int
+getPrecedence Prod {} = 12
+getPrecedence Plus {} = 11
+getPrecedence Mnus {} = 11
+getPrecedence ELT {} = 9
+getPrecedence EGT {} = 9
+getPrecedence ELE {} = 9
+getPrecedence EGE {} = 9
+getPrecedence ENE {} = 8
+getPrecedence EEQ {} = 8
+getPrecedence _      = 114514
+
+{-# INLINE precedenceOrdering #-}
+precedenceOrdering :: SimpleExp -> SimpleExp -> Ordering
+precedenceOrdering exp1 exp2 = compare (getPrecedence exp1) (getPrecedence exp2)
 
 instance Show SimpleExp where
-  show (Nmbr n) = show n
+  show (EVal v) = show v
   show (EVar v) = v
-  show (Plus e e')
-    = show e ++
+  show exp@(Plus e e')
+    = applyOn (precedenceOrdering exp e' == GT) addBrace (show e) ++
       " + " ++
-      applyOn (isPlus e' || isMnus e') addBrace (show e')
-  show (Mnus e e')
-    = show e ++
+      applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
+  show exp@(Mnus e e')
+    = applyOn (precedenceOrdering exp e == GT) addBrace (show e) ++
       " - " ++
-      applyOn (isPlus e' || isMnus e') addBrace (show e')
-  show (Prod e e')
-    = applyOn (isPlus e || isMnus e) addBrace (show e) ++
+      applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
+  show exp@(Prod e e')
+    = applyOn (precedenceOrdering exp e == GT) addBrace (show e) ++
       " * " ++
-      applyOn (not (isNmbr e' || isEVar e')) addBrace (show e')
+      applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
+  show exp@(ELT e e')
+    = applyOn (precedenceOrdering exp e == GT) addBrace (show e) ++
+      " < " ++
+      applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
+  show exp@(EGT e e')
+    = applyOn (precedenceOrdering exp e == GT) addBrace (show e) ++
+      " > " ++
+      applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
+  show exp@(ENE e e')
+    = applyOn (precedenceOrdering exp e == GT) addBrace (show e) ++
+      " != " ++
+      applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
+  show exp@(EEQ e e')
+    = applyOn (precedenceOrdering exp e == GT) addBrace (show e) ++
+      " = " ++
+      applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
+  show exp@(ELE e e')
+    = applyOn (precedenceOrdering exp e == GT) addBrace (show e) ++
+      " <= " ++
+      applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
+  show exp@(EGE e e')
+    = applyOn (precedenceOrdering exp e == GT) addBrace (show e) ++
+      " >= " ++
+      applyOn (precedenceOrdering exp e' `elem` [GT, EQ]) addBrace (show e')
 
 instance Num SimpleExp where
   x + y       = Plus x y
   x * y       = Prod x y
-  fromInteger = Nmbr
+  fromInteger = EVal . VNum
   abs         = undefined
   signum      = undefined
   negate      = undefined
-
--- | Condition:
--- B ::= "true" | "false" | "not" B | B "and" B | B "or" B 
--- | E < E | E = E | E > E | E <= E | E != E | E >= E
-data Condition
-  = T
-  | F
-  | Not Condition
-  | And Condition Condition
-  | Or  Condition Condition
-  | CLT SimpleExp SimpleExp
-  | CGT SimpleExp SimpleExp
-  | CEQ SimpleExp SimpleExp
-  | CLE SimpleExp SimpleExp
-  | CNE SimpleExp SimpleExp
-  | CGE SimpleExp SimpleExp
-  deriving Eq
-
-instance Show Condition where
-  show T          = "true"
-  show F          = "false"
-  show (Not b)    = '!' : show b
-  show (And b b') = show b ++ " & "  ++ show b'
-  show (Or  b b') = show b ++ " | "  ++ show b'
-  show (CLT e e') = show e ++ " < "  ++ show e'
-  show (CGT e e') = show e ++ " > "  ++ show e'
-  show (CEQ e e') = show e ++ " = "  ++ show e'
-  show (CLE e e') = show e ++ " <= " ++ show e'
-  show (CNE e e') = show e ++ " >= " ++ show e'
-  show (CGE e e') = show e ++ " != " ++ show e'
 
 -- | This is our entire language.
 -- Note here we have 2 kinds of answer configuration, namely "skip" and 
@@ -91,15 +93,15 @@ instance Show Condition where
 -- "return"), but with "return" we can see the evaluated result without looking
 -- into the state.
 -- Command:
--- C ::= v = E | C; C | "skip" | "return" E | "if" B "then" C "else" C
--- | "while" B "do" C
+-- C ::= v = E | C; C | "skip" | "return" E | "if" E "then" C "else" C
+-- | "while" E "do" C
 data Command
   = Asgn String SimpleExp
   | Command :+: Command
   | Skip
   | Ret SimpleExp
-  | If Condition Command Command
-  | While Condition Command
+  | If SimpleExp Command Command
+  | While SimpleExp Command
   deriving Eq
 infixr 2 :+:
 
@@ -118,3 +120,36 @@ instance Show Command where
 
 -- | The "State" or "Context" of the expression.
 type Context = Map String SimpleExp
+
+-- | The "result" type that encodes the type information of the value.
+data Value = VNum Integer | VBool Bool
+  deriving Eq
+
+instance Show Value where
+  show (VNum n)      = show n
+  show (VBool True)  = "true"
+  show (VBool False)  = "false"
+
+{-# INLINE isNum #-}
+{-# INLINE isBool #-}
+isNum, isBool :: Value -> Bool
+isNum VNum {}   = True
+isNum _         = False
+isBool VBool {} = True
+isBool _        = False
+
+{-# INLINE fromNum #-}
+fromNum :: Value -> Integer
+fromNum (VNum n) = n
+fromNum _        = error "Extract from invalid number!"
+
+{-# INLINE fromBool #-}
+fromBool :: Value -> Bool
+fromBool (VBool b) = b
+fromBool _         = error "Extract from invalid boolean!"
+
+{-# INLINE eTOP #-}
+{-# INLINE eBTM #-}
+eTOP, eBTM :: SimpleExp
+eTOP = EVal $ VBool True
+eBTM = EVal $ VBool False

@@ -189,7 +189,7 @@ expParser = eatBlankSpace >> parser' <* eof
           , caseSensitive = True
           , opStart = oneOf ""
           , opLetter = oneOf ""
-          , reservedOpNames = ["+", "-", "*"]
+          , reservedOpNames = ["+", "-", "*", "<=", ">=", "==", "!=", "<", ">"]
           }
     expTerm =
       expParens parser' <|>
@@ -199,5 +199,13 @@ expParser = eatBlankSpace >> parser' <* eof
       [ [ Infix (expReservedOp "*" >> return Prod) AssocLeft ]
       , [ Infix (expReservedOp "+" >> return Plus) AssocLeft
         , Infix (expReservedOp "-" >> return Mnus) AssocLeft
+        ]
+      , [ Infix (expReservedOp "<=" >> return ELE) AssocLeft
+        , Infix (expReservedOp ">=" >> return EGE) AssocLeft
+        , Infix (expReservedOp "<" >> return ELT) AssocLeft
+        , Infix (expReservedOp ">" >> return EGT) AssocLeft
+        ]
+      , [ Infix (expReservedOp "!=" >> return ENE) AssocLeft
+        , Infix (expReservedOp "=" >> return EEQ) AssocLeft
         ]
       ]

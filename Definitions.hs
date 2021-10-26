@@ -119,6 +119,9 @@ instance Show Command where
                              show' (n + 2) c
 
 -- | The "State" or "Context" of the expression.
+-- Normally, the SimpleExp in the context is evaluated, so I could just change
+-- it to Value. I did so for potential support for lazy evaluation... I guess?
+-- Probably not going to happen XD.
 type Context = Map String SimpleExp
 
 -- | The "result" type that encodes the type information of the value.

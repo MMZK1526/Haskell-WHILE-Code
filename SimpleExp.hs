@@ -27,80 +27,34 @@ instance Expression SimpleExp where
   evalS :: SimpleExp -> StateT Context Maybe SimpleExp
   evalS e = do
     c <- get
+    let binOp op e e' fromValMaybe toVal = do
+          l <- evalS e >>= lift . fromValMaybe . fromEVal
+          r <- evalS e' >>= lift . fromValMaybe . fromEVal
+          return $ EVal $ toVal $ l `op` r
+    let unOp op e fromValMaybe toVal = do
+          v <- evalS e >>= lift . fromValMaybe . fromEVal
+          return $ EVal $ toVal $ op v
     case e of
-      EVal v    -> return $ EVal v -- B-Val
-      EVar v    ->                 -- B-Var
-        EVal <$> lift (M.lookup v c)
-      Plus e e' -> do              -- B-Add
-        EVal l <- evalS e
-        EVal r <- evalS e'
-        if isNum l && isNum r
-          then return $ EVal $ VNum $ fromNum l + fromNum r
-          else lift Nothing
-      Mnus e e' -> do              -- B-Neg
-        EVal l <- evalS e
-        EVal r <- evalS e'
-        if isNum l && isNum r
-          then return $ EVal $ VNum $ fromNum l - fromNum r
-          else lift Nothing
-      Prod e e' -> do              -- B-Mul
-        EVal l <- evalS e
-        EVal r <- evalS e'
-        if isNum l && isNum r
-          then return $ EVal $ VNum $ fromNum l * fromNum r
-          else lift Nothing
-      ELT (EVal (VNum n)) (EVal (VNum n')) -> -- B-LT
-        return $ if n < n' then eTOP else eBTM
-      ELT e e'           -> do
-        EVal l <- evalS e
-        EVal r <- evalS e'
-        if isNum l && isNum r
-          then return $ if fromNum l < fromNum r then eTOP else eBTM
-          else lift Nothing
-      EGT (EVal (VNum n)) (EVal (VNum n')) -> -- B-GT
-        return $ if n > n' then eTOP else eBTM
-      EGT e e'           -> do
-        EVal l <- evalS e
-        EVal r <- evalS e'
-        if isNum l && isNum r
-          then return $ if fromNum l > fromNum r then eTOP else eBTM
-          else lift Nothing
-      EEQ (EVal (VNum n)) (EVal (VNum n')) -> -- B-EQ
-        return $ if n == n' then eTOP else eBTM
-      EEQ (EVal (VBool b)) (EVal (VBool b')) -> 
-        return $ if b == b' then eTOP else eBTM
-      EEQ e e'           -> do
-        EVal l <- evalS e
-        EVal r <- evalS e'
-        if getType l == getType r
-          then evalS $ EEQ (EVal l) (EVal r)
-          else lift Nothing
-      ELE (EVal (VNum n)) (EVal (VNum n')) -> -- B-LE
-         return $ if n <= n' then eTOP else eBTM
-      ELE e e'           -> do
-        EVal l <- evalS e
-        EVal r <- evalS e'
-        if isNum l && isNum r
-          then return $ if fromNum l <= fromNum r then eTOP else eBTM
-          else lift Nothing
-      ENE (EVal (VNum n)) (EVal (VNum n')) -> -- B-NE
-         return $ if n /= n' then eTOP else eBTM
-      ENE (EVal (VBool b)) (EVal (VBool b')) -> 
-        return $ if b /= b' then eTOP else eBTM
-      ENE e e'           -> do
-        EVal l <- evalS e
-        EVal r <- evalS e'
-        if getType l == getType r
-          then evalS $ ENE (EVal l) (EVal r)
-          else lift Nothing
-      EGE (EVal (VNum n)) (EVal (VNum n')) -> -- B-GE
-         return $ if n >= n' then eTOP else eBTM
-      EGE e e'           -> do
-        EVal l <- evalS e
-        EVal r <- evalS e'
-        if isNum l && isNum r
-          then return $ if fromNum l >= fromNum r then eTOP else eBTM
-          else lift Nothing
+      EVal v    -> return $ EVal v
+      EVar v    -> EVal <$> lift (M.lookup v c)
+      Plus e e' -> binOp (+)  e e' fromNumMaybe VNum
+      Mnus e e' -> binOp (-)  e e' fromNumMaybe VNum
+      Prod e e' -> binOp (*)  e e' fromNumMaybe VNum
+      ELT e e'  -> binOp (<)  e e' fromNumMaybe VBool
+      EGT e e'  -> binOp (>)  e e' fromNumMaybe VBool
+      ELE e e'  -> binOp (<=) e e' fromNumMaybe VBool
+      EGE e e'  -> binOp (>=) e e' fromNumMaybe VBool
+      EEQ e e'  -> do
+        let numArgs  = evalStateT (binOp (==) e e' fromNumMaybe VBool) c
+        let boolArgs = evalStateT (binOp (==) e e' fromBoolMaybe VBool) c
+        lift $ numArgs `mplus` boolArgs
+      ENE e e'  -> do
+        let numArgs  = evalStateT (binOp (==) e e' fromNumMaybe VBool) c
+        let boolArgs = evalStateT (binOp (==) e e' fromBoolMaybe VBool) c
+        lift $ numArgs `mplus` boolArgs
+      And e e'  -> binOp (&&) e e' fromBoolMaybe VBool
+      Or  e e'  -> binOp (&&) e e' fromBoolMaybe VBool
+      Not e     -> unOp  not  e    fromBoolMaybe VBool
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- stuck state.
@@ -177,6 +131,7 @@ instance Expression SimpleExp where
       EVar v -> do
         EVal <$> lift (M.lookup v c)
       EVal _ -> lift Nothing
+      _ -> undefined
 
 -- | The parser for SimpleExp
 expParser :: Parser SimpleExp

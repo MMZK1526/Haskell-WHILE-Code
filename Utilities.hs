@@ -1,12 +1,12 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Utilities where
+
 import Data.Maybe ( fromJust, isJust )
-import Control.Monad.Identity ( Identity )
+import Control.Monad.Identity ( void, Identity ) 
 import Text.Parsec ( Parsec, Stream )
 import Text.Parsec.Char ( char, digit, oneOf )
 import Text.Parsec.Prim ( Stream, Parsec, many, try )
-import Control.Monad ( void )
 
 -- | Add a pair of round braces to the String.
 {-# INLINE addBrace #-}

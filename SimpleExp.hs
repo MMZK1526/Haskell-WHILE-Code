@@ -39,21 +39,29 @@ instance Expression SimpleExp where
       Plus e e' -> binOp (+)  e e' fromNumMaybe VNum
       Mnus e e' -> binOp (-)  e e' fromNumMaybe VNum
       Prod e e' -> binOp (*)  e e' fromNumMaybe VNum
-      ELT e e'  -> binOp (<)  e e' fromNumMaybe VBool
-      EGT e e'  -> binOp (>)  e e' fromNumMaybe VBool
-      ELE e e'  -> binOp (<=) e e' fromNumMaybe VBool
-      EGE e e'  -> binOp (>=) e e' fromNumMaybe VBool
-      EEQ e e'  -> do
+      ELT  e e' -> binOp (<)  e e' fromNumMaybe VBool
+      EGT  e e' -> binOp (>)  e e' fromNumMaybe VBool
+      ELE  e e' -> binOp (<=) e e' fromNumMaybe VBool
+      EGE  e e' -> binOp (>=) e e' fromNumMaybe VBool
+      EEQ  e e' -> do
         let numArgs  = evalStateT (binOp (==) e e' fromNumMaybe VBool) c
         let boolArgs = evalStateT (binOp (==) e e' fromBoolMaybe VBool) c
         lift $ numArgs `mplus` boolArgs
-      ENE e e'  -> do
+      ENE  e e' -> do
         let numArgs  = evalStateT (binOp (==) e e' fromNumMaybe VBool) c
         let boolArgs = evalStateT (binOp (==) e e' fromBoolMaybe VBool) c
         lift $ numArgs `mplus` boolArgs
-      And e e'  -> binOp (&&) e e' fromBoolMaybe VBool
-      Or  e e'  -> binOp (&&) e e' fromBoolMaybe VBool
-      Not e     -> unOp  not  e    fromBoolMaybe VBool
+      And  e e' -> do
+        l <- evalS e >>= lift . fromBoolMaybe . val
+        if not l
+          then return $ EVal $ VBool False
+          else EVal . VBool <$> (evalS e' >>= lift . fromBoolMaybe . val)
+      Or   e e' -> do
+        l <- evalS e >>= lift . fromBoolMaybe . val
+        if l
+          then return $ EVal $ VBool True
+          else EVal . VBool <$> (evalS e' >>= lift . fromBoolMaybe . val)
+      Not  e    -> unOp  not  e    fromBoolMaybe VBool
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- stuck state.
@@ -71,6 +79,8 @@ instance Expression SimpleExp where
           e        -> toExp <$> eval1S e 
     c <- get
     case e of
+      EVar v    -> EVal <$> lift (M.lookup v c)
+      EVal _    -> lift Nothing
       Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum  Plus
       Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum  Mnus
       Prod e e' -> binOp (*)  e e' fromNumMaybe  VNum  Prod
@@ -86,12 +96,22 @@ instance Expression SimpleExp where
         let numArgs  = evalStateT (binOp (==) e e' fromNumMaybe VBool EEQ) c
         let boolArgs = evalStateT (binOp (==) e e' fromBoolMaybe VBool EEQ) c
         lift $ numArgs `mplus` boolArgs
-      -- BASE RULES:
-      EVar v -> do
-        EVal <$> lift (M.lookup v c)
-      EVal _ -> lift Nothing
-      And e e'  -> binOp (&&) e e' fromBoolMaybe VBool And
-      Or  e e'  -> binOp (&&) e e' fromBoolMaybe VBool Or
+      And e e'  -> case (e, e') of
+          (EVal l, EVal r) -> do
+            lv <- lift $ fromBoolMaybe l
+            if not lv
+              then return $ EVal $ VBool False
+              else EVal . VBool <$> lift (fromBoolMaybe r)
+          (EVal l, e')     -> And e <$> eval1S e'
+          (e,      e')     -> flip And e' <$> eval1S e
+      Or  e e'  -> case (e, e') of
+          (EVal l, EVal r) -> do
+            lv <- lift $ fromBoolMaybe l
+            if lv
+              then return $ EVal $ VBool True
+              else EVal . VBool <$> lift (fromBoolMaybe r)
+          (EVal l, e')     -> Or e <$> eval1S e'
+          (e,      e')     -> flip Or e' <$> eval1S e
       Not e     -> unOp  not  e    fromBoolMaybe VBool Not
 
 -- | The parser for SimpleExp

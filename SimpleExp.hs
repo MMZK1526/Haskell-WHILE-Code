@@ -31,9 +31,8 @@ instance Expression SimpleExp where
           l <- evalS e >>= lift . fromValMaybe . fromEVal
           r <- evalS e' >>= lift . fromValMaybe . fromEVal
           return $ EVal $ toVal $ l `op` r
-    let unOp op e fromValMaybe toVal = do
-          v <- evalS e >>= lift . fromValMaybe . fromEVal
-          return $ EVal $ toVal $ op v
+    let unOp op e fromValMaybe toVal
+          = EVal . toVal . op <$> (evalS e >>= lift . fromValMaybe . fromEVal)
     case e of
       EVal v    -> return $ EVal v
       EVar v    -> EVal <$> lift (M.lookup v c)
@@ -60,18 +59,16 @@ instance Expression SimpleExp where
   -- stuck state.
   eval1S :: SimpleExp -> StateT Context Maybe SimpleExp
   eval1S e = do
-    let binOp op e e' fromValMaybe toVal toExp = do
-          case (e, e') of
-            (EVal l, EVal r) -> do
-              lv <- lift $ fromValMaybe l
-              rv <- lift $ fromValMaybe r
-              return $ EVal $ toVal $ lv `op` rv
-            (EVal l, e')     -> do
-              e' <- eval1S e'
-              return $ toExp e e'
-            (e,      e')     -> do
-              e <- eval1S e
-              return $ toExp e e'
+    let binOp op e e' fromValMaybe toVal toExp = case (e, e') of
+          (EVal l, EVal r) -> do
+            lv <- lift $ fromValMaybe l
+            rv <- lift $ fromValMaybe r
+            return $ EVal $ toVal $ lv `op` rv
+          (EVal l, e')     -> toExp e <$> eval1S e'
+          (e,      e')     -> flip toExp e' <$> eval1S e
+    let unOp op e fromValMaybe toVal toExp = case e of
+          (EVal v) -> EVal . toVal . op <$> lift (fromValMaybe v)
+          e        -> toExp <$> eval1S e 
     c <- get
     case e of
       Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum  Plus
@@ -93,7 +90,9 @@ instance Expression SimpleExp where
       EVar v -> do
         EVal <$> lift (M.lookup v c)
       EVal _ -> lift Nothing
-      _ -> undefined
+      And e e'  -> binOp (&&) e e' fromBoolMaybe VBool And
+      Or  e e'  -> binOp (&&) e e' fromBoolMaybe VBool Or
+      Not e     -> unOp  not  e    fromBoolMaybe VBool Not
 
 -- | The parser for SimpleExp
 expParser :: Parser SimpleExp

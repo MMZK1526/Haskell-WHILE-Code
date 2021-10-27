@@ -28,11 +28,11 @@ instance Expression SimpleExp where
   evalS e = do
     c <- get
     let binOp op e e' fromValMaybe toVal = do
-          l <- evalS e >>= lift . fromValMaybe . fromEVal
-          r <- evalS e' >>= lift . fromValMaybe . fromEVal
+          l <- evalS e >>= lift . fromValMaybe . val
+          r <- evalS e' >>= lift . fromValMaybe . val
           return $ EVal $ toVal $ l `op` r
     let unOp op e fromValMaybe toVal
-          = EVal . toVal . op <$> (evalS e >>= lift . fromValMaybe . fromEVal)
+          = EVal . toVal . op <$> (evalS e >>= lift . fromValMaybe . val)
     case e of
       EVal v    -> return $ EVal v
       EVar v    -> EVal <$> lift (M.lookup v c)
@@ -114,12 +114,12 @@ expParser = eatBlankSpace >> parser' <* eof
               = ["+", "-", "*", "<=", ">=", "==", "!=", "<", ">", "&", "|", "!"]
           , reservedNames = ["true", "false"]
           }
-    expTerm =
-      expParens parser' <|>
-      EVar <$> expIdentifier <|>
-      EVal . VNum <$> int <|>
-      EVal <$> (expReserved "true" >> return (VBool True)) <|>
-      EVal <$> (expReserved "false" >> return (VBool False))
+    expTerm
+        = expParens parser'
+      <|> EVar <$> expIdentifier
+      <|> EVal . VNum <$> int
+      <|> EVal <$> (expReserved "true" >> return (VBool True))
+      <|> EVal <$> (expReserved "false" >> return (VBool False))
     expTable =
       [ [ Infix (expReservedOp "*" >> return Prod) AssocLeft ]
       , [ Infix (expReservedOp "+" >> return Plus) AssocLeft

@@ -23,12 +23,12 @@ class Expression e where
   eval :: e -> Maybe e
   eval exp = evalStateT (evalS exp) M.empty
 
-  -- | Return a list of Expressions, each one is one-step reduced from the 
+  -- | Return a list of Expressions, each one is one-step reduced from the
   -- previous one. Starting from an empty state, discarding the state.
   evalStar :: e -> [e]
   evalStar e = evalState (evalStarS e) M.empty
 
-  -- | Return a list of Expressions, each one is one-step reduced from the 
+  -- | Return a list of Expressions, each one is one-step reduced from the
   -- previous one.
   evalStarS :: e -> State Context [e]
   evalStarS exp = do
@@ -44,7 +44,7 @@ class Expression e where
         rest <- evalStarS e
         return $ exp : rest
 
-  -- | Pretty prints the result of evalStar, starting from an empty state. 
+  -- | Pretty prints the result of evalStar, starting from an empty state.
   -- Only works if the expression implements 'Show'.
   evalStarPrint :: Show e => e -> IO ()
   evalStarPrint = evalStarPrintS M.empty
@@ -54,7 +54,7 @@ class Expression e where
   evalStarPrintS :: Show e => Context -> e -> IO ()
   evalStarPrintS c exp = do
     let (exps, ctxt) = runState (evalStarS exp) c
-    forM_ (zip [0..] exps) $ 
+    forM_ (zip [0..] exps) $
         \(i, exp) -> putStrLn $ "Step " ++ show i ++ ":\n" ++ show exp ++ "\n"
     putStrLn $ if not (null ctxt) && M.member "_" ctxt
       then "Evaluation failed due to having undefined variable(s)!"

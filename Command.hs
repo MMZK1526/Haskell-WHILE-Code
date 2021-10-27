@@ -52,7 +52,7 @@ instance Expression Command where
     case lang of
       Skip :+: com -> return com    -- W-SEQ.SKIP
       com :+: com' -> do            -- W-SEQ.LEFT
-        lang' <- eval1S com  
+        lang' <- eval1S com
         case lang' of
           Ret (EVal v) -> return $ Ret $ EVal v
           com''        -> return $ com'' :+: com'
@@ -63,21 +63,21 @@ instance Expression Command where
         exp' <- eval1S exp
         return $ Asgn x exp'
       If (EVal (VBool True)) com _  -- W-COND.TRUE
-        -> return com    
-      If (EVal (VBool False)) _ com -- W-COND.FALSE     
-        -> return com  
+        -> return com
+      If (EVal (VBool False)) _ com -- W-COND.FALSE
+        -> return com
       If b com com' -> do          -- W-COND.BEXP
         b' <- eval1S b
         return $ If b' com com'
       Ret exp    -> Ret <$> eval1S exp
       While b c  -> return $       -- W-WHILE
         If b (c :+: While b c) Skip
-      _               -> lift Nothing   
+      _               -> lift Nothing
 
 comFact :: Command
-comFact = 
-      Asgn "y" (EVar "x")
-  :+: Asgn "a" 1 
+comFact
+    = Asgn "y" (EVar "x")
+  :+: Asgn "a" 1
   :+: While (EGT (EVar "y") 0) (
         Asgn "a" (Prod (EVar "a") (EVar "y"))
     :+: Asgn "y" (Mnus (EVar "y") 1)

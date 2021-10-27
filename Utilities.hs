@@ -3,7 +3,7 @@
 module Utilities where
 
 import Data.Maybe ( fromJust, isJust )
-import Control.Monad.Identity ( void, Identity ) 
+import Control.Monad.Identity ( void, Identity )
 import Text.Parsec ( Parsec, Stream )
 import Text.Parsec.Char ( char, digit, oneOf )
 import Text.Parsec.Prim ( Stream, Parsec, many, try )

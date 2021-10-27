@@ -9,8 +9,8 @@ import Data.Maybe
 -- E ::= v | n | E + E | E - E | E * E | "true" | "false" | "not" E | E "and" E
 -- | E "or" E  | E < E | E = E | E > E | E <= E | E != E | E >= E
 data SimpleExp
-  = EVar { var :: String }
-  | EVal { val :: Value } -- Number or Boolean
+  = EVar { var  :: String }
+  | EVal { val  :: Value } -- Number or Boolean
   | Plus { exp1 :: SimpleExp, exp2 :: SimpleExp }
   | Mnus { exp1 :: SimpleExp, exp2 :: SimpleExp }
   | Prod { exp1 :: SimpleExp, exp2 :: SimpleExp }
@@ -20,15 +20,10 @@ data SimpleExp
   | ELE  { exp1 :: SimpleExp, exp2 :: SimpleExp }
   | EGE  { exp1 :: SimpleExp, exp2 :: SimpleExp }
   | ENE  { exp1 :: SimpleExp, exp2 :: SimpleExp }
-  | Not  { exp1 :: SimpleExp }
   | And  { exp1 :: SimpleExp, exp2 :: SimpleExp }
   | Or   { exp1 :: SimpleExp, exp2 :: SimpleExp }
+  | Not  { exp1 :: SimpleExp }
   deriving (Eq)
-
-{-# INLINE fromEVal #-}
-fromEVal :: SimpleExp -> Value
-fromEVal (EVal v) = v
-fromEVal _        = undefined
 
 {-# INLINE getPrec #-}
 getPrec :: SimpleExp -> Int
@@ -64,7 +59,7 @@ getOpSymbol _       = undefined
 
 {-# INLINE precOrd #-}
 precOrd :: SimpleExp -> SimpleExp -> Ordering
-precOrd exp1 exp2 
+precOrd exp1 exp2
   = compare (getPrec exp1) (getPrec exp2)
 
 instance Show SimpleExp where
@@ -74,7 +69,7 @@ instance Show SimpleExp where
     = '!' : applyOn (precOrd exp e /= LT) addBrace (show e)
     where
       e = exp1 exp
-  show exp 
+  show exp
     = applyOn (precOrd exp e == GT) addBrace (show e) ++
       getOpSymbol exp ++
       applyOn (precOrd exp e' /= LT) addBrace (show e')
@@ -91,7 +86,7 @@ instance Num SimpleExp where
   negate      = undefined
 
 -- | This is our entire language.
--- Note here we have 2 kinds of answer configuration, namely "skip" and 
+-- Note here we have 2 kinds of answer configuration, namely "skip" and
 -- "return" E (if E is in normal form as well).
 -- This is different to what's introduced in the course (where there is no
 -- "return"), but with "return" we can see the evaluated result without looking
@@ -116,10 +111,10 @@ instance Show Command where
       show' n (c :+: c')   = show' n c ++ "\n" ++ show' n c'
       show' _ Skip         = "[DO NOTHING]"
       show' n (Ret exp)    = replicate n ' ' ++ show exp
-      show' n (If b c c')  = replicate n ' ' ++ "if " ++ show b ++ "\n" ++ 
-                             show' (n + 2) c ++ "\n" ++ 
+      show' n (If b c c')  = replicate n ' ' ++ "if " ++ show b ++ "\n" ++
+                             show' (n + 2) c ++ "\n" ++
                              replicate n ' ' ++ "else\n" ++ show' (n + 2) c'
-      show' n (While b c)  = replicate n ' ' ++ "while " ++ show b ++ "\n" ++ 
+      show' n (While b c)  = replicate n ' ' ++ "while " ++ show b ++ "\n" ++
                              show' (n + 2) c
 
 -- | The "State" or "Context" of the expression.

@@ -29,7 +29,7 @@ instance Expression SimpleExp where
   evalS e = do
     c <- get
     let binOp op e e' fromValMaybe toVal = do
-          l <- evalS e >>= lift . fromValMaybe . val
+          l <- evalS e  >>= lift . fromValMaybe . val
           r <- evalS e' >>= lift . fromValMaybe . val
           return $ EVal $ toVal $ l `op` r
     let unOp op e fromValMaybe toVal
@@ -37,13 +37,13 @@ instance Expression SimpleExp where
     case e of
       EVal v    -> return $ EVal v
       EVar v    -> EVal <$> lift (M.lookup v c)
-      Plus e e' -> binOp (+)  e e' fromNumMaybe VNum
-      Mnus e e' -> binOp (-)  e e' fromNumMaybe VNum
-      Prod e e' -> binOp (*)  e e' fromNumMaybe VNum
-      ELT  e e' -> binOp (<)  e e' fromNumMaybe VBool
-      EGT  e e' -> binOp (>)  e e' fromNumMaybe VBool
-      ELE  e e' -> binOp (<=) e e' fromNumMaybe VBool
-      EGE  e e' -> binOp (>=) e e' fromNumMaybe VBool
+      Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum
+      Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum
+      Prod e e' -> binOp (*)  e e' fromNumMaybe  VNum
+      ELT  e e' -> binOp (<)  e e' fromNumMaybe  VBool
+      EGT  e e' -> binOp (>)  e e' fromNumMaybe  VBool
+      ELE  e e' -> binOp (<=) e e' fromNumMaybe  VBool
+      EGE  e e' -> binOp (>=) e e' fromNumMaybe  VBool
       Not  e    -> unOp  not  e    fromBoolMaybe VBool
       EEQ  e e' -> do
         let numArgs  = evalStateT (binOp (==) e e' fromNumMaybe VBool) c

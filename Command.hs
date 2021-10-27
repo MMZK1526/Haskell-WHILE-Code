@@ -4,7 +4,7 @@ module Command where
 
 import qualified Data.Map as M
 import Control.Monad.Trans.State
-import SimpleExp
+import SimpleExp ()
 import Expression
 import Definitions
 import Control.Monad.Trans

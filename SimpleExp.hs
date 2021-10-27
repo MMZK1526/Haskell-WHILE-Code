@@ -60,73 +60,35 @@ instance Expression SimpleExp where
   -- stuck state.
   eval1S :: SimpleExp -> StateT Context Maybe SimpleExp
   eval1S e = do
+    let binOp op e e' fromValMaybe toVal toExp = do
+          case (e, e') of
+            (EVal l, EVal r) -> do
+              lv <- lift $ fromValMaybe l
+              rv <- lift $ fromValMaybe r
+              return $ EVal $ toVal $ lv `op` rv
+            (EVal l, e')     -> do
+              e' <- eval1S e'
+              return $ toExp e e'
+            (e,      e')     -> do
+              e <- eval1S e
+              return $ toExp e e'
     c <- get
     case e of
-      Plus e e' -> case (e, e') of -- W-EXP.ADD
-        (EVal (VNum n), EVal (VNum n'))
-          -> return (EVal $ VNum $ n + n')
-        (EVal (VNum n), e')
-          -> Plus (EVal (VNum n)) <$> eval1S e'
-        (e,      e') -> do
-          e <- eval1S e
-          return (Plus e e')
-      Mnus e e' -> case (e, e') of -- W-EXP.MINUS
-        (EVal (VNum n), EVal (VNum n'))
-          -> return (EVal $ VNum $ n - n')
-        (EVal (VNum n), e')
-          -> Mnus (EVal (VNum n)) <$> eval1S e'
-        (e,      e') -> do
-          e <- eval1S e
-          return (Mnus e e')
-      Prod e e' -> case (e, e') of -- W-EXP.MUL
-        (EVal (VNum n), EVal (VNum n'))
-          -> return (EVal $ VNum $ n * n')
-        (EVal (VNum n), e')
-          -> Prod (EVal (VNum n)) <$> eval1S e'
-        (e,      e') -> do
-          e <- eval1S e
-          return (Prod e e')
-      -- COMPARISON RULES:
-      ELT (EVal (VNum n)) (EVal (VNum n'))
-        -> return $ if n < n' then eTOP else eBTM
-      ELT (EVal (VNum n)) e'
-        -> ELT (EVal (VNum n)) <$> eval1S e'
-      ELT e e'
-        -> liftM2 ELT (eval1S e) (return e')
-      EGT (EVal (VNum n)) (EVal (VNum n'))
-        -> return $ if n > n' then eTOP else eBTM
-      EGT (EVal (VNum n)) e'
-        -> EGT (EVal (VNum n)) <$> eval1S e'
-      EGT e e'
-        -> liftM2 EGT (eval1S e) (return e')
-      EEQ (EVal (VNum n)) (EVal (VNum n'))
-        -> return $ if n == n' then eTOP else eBTM
-      EEQ (EVal (VBool b)) (EVal (VBool b'))
-        -> return $ if b == b' then eTOP else eBTM
-      EEQ (EVal v) e'
-        -> EEQ (EVal v) <$> eval1S e'
-      EEQ e e'
-        -> liftM2 EEQ (eval1S e) (return e')
-      ELE (EVal (VNum n)) (EVal (VNum n'))
-        -> return $ if n <= n' then eTOP else eBTM
-      ELE (EVal (VNum n)) e'
-        -> ELE (EVal (VNum n)) <$> eval1S e'
-      ELE e e'
-        -> liftM2 ELE (eval1S e) (return e')
-      ENE (EVal (VNum n)) (EVal (VNum n'))
-        -> return $ if n /= n' then eTOP else eBTM
-      ENE (EVal (VBool b)) (EVal (VBool b'))
-        -> return $ if b /= b' then eTOP else eBTM
-      ENE (EVal v) e'
-        -> ENE (EVal v) <$> eval1S e'
-      ENE e e'
-        -> liftM2 ENE (eval1S e) (return e')
-      EGE (EVal (VNum n)) (EVal (VNum n'))
-        -> return $ if n >= n' then eTOP else eBTM
-      EGE (EVal (VNum n)) e'
-        -> EGE (EVal (VNum n)) <$> eval1S e'
-      EGE e e'
-        -> liftM2 EGE (eval1S e) (return e')
+      Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum  Plus
+      Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum  Mnus
+      Prod e e' -> binOp (*)  e e' fromNumMaybe  VNum  Prod
+      ELT e e'  -> binOp (<)  e e' fromNumMaybe  VBool ELT
+      EGT e e'  -> binOp (>)  e e' fromNumMaybe  VBool EGT
+      ELE e e'  -> binOp (<=) e e' fromNumMaybe  VBool ELE
+      EGE e e'  -> binOp (>=) e e' fromNumMaybe  VBool EGE
+      ENE e e'  -> do
+        let numArgs  = evalStateT (binOp (/=) e e' fromNumMaybe VBool ENE) c
+        let boolArgs = evalStateT (binOp (/=) e e' fromBoolMaybe VBool ENE) c
+        lift $ numArgs `mplus` boolArgs
+      EEQ e e'  -> do
+        let numArgs  = evalStateT (binOp (==) e e' fromNumMaybe VBool EEQ) c
+        let boolArgs = evalStateT (binOp (==) e e' fromBoolMaybe VBool EEQ) c
+        lift $ numArgs `mplus` boolArgs
       -- BASE RULES:
       EVar v -> do
         EVal <$> lift (M.lookup v c)

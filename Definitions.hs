@@ -152,7 +152,7 @@ fromNumMaybe _        = Nothing
 {-# INLINE fromBoolMaybe #-}
 fromBoolMaybe :: Value -> Maybe Bool
 fromBoolMaybe (VBool b) = Just b
-fromBoolMaybe _         = error "Extract from invalid boolean!"
+fromBoolMaybe _         = Nothing
 
 {-# INLINE fromNum #-}
 fromNum :: Value -> Integer

@@ -132,6 +132,7 @@ expParser = eatBlankSpace >> parser' <* eof
         , Infix (expReservedOp ">"  >> return EGT) AssocLeft
         ]
       , [ Infix (expReservedOp "!=" >> return ENE) AssocLeft
+        , Infix (expReservedOp "==" >> return EEQ) AssocLeft
         , Infix (expReservedOp "="  >> return EEQ) AssocLeft
         ]
       , [ Infix  (expReservedOp "&" >> return And) AssocLeft ]

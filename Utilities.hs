@@ -2,7 +2,7 @@
 
 module Utilities where
 
-import Data.Maybe ( fromJust, isJust )
+import Data.Maybe ( fromJust, isJust, maybe )
 import Control.Monad.Identity ( void, Identity )
 import Text.Parsec ( Parsec, Stream )
 import Text.Parsec.Char ( char, digit, oneOf )
@@ -30,3 +30,7 @@ int = read <$> do
   r <- many digit
   void (try (void $ many $ char ' '))
   return (f : r)
+
+-- | Transform a Maybe to a Either String
+encodeErr :: String -> Maybe a -> Either String a
+encodeErr = flip maybe Right . Left

@@ -17,7 +17,7 @@ class Expression e where
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- stuck state.
-  eval1S :: e -> StateT Context Maybe e
+  eval1S :: e -> StateT Context (Either String) e
 
   -- | Big-Step evaluation, starting from an empty state, discarding the state.
   eval :: e -> Maybe e
@@ -25,24 +25,20 @@ class Expression e where
 
   -- | Return a list of Expressions, each one is one-step reduced from the
   -- previous one. Starting from an empty state, discarding the state.
-  evalStar :: e -> [e]
+  evalStar :: e -> ([e], String)
   evalStar e = evalState (evalStarS e) M.empty
 
   -- | Return a list of Expressions, each one is one-step reduced from the
   -- previous one.
-  evalStarS :: e -> State Context [e]
+  evalStarS :: e -> State Context ([e], String)
   evalStarS exp = do
     ctxt <- get
     case runStateT (eval1S exp) ctxt of
-      Nothing     -> if isNormal exp
-        then return [exp]
-        -- Add a dash to represent an error state.
-        -- Temporary solution; wilVNuml find a more desciptive way of doing so.
-        else put (M.insert "_" 0 ctxt) >> return [exp]
-      Just (e, c) -> do
+      Left str     -> return ([exp], str)
+      Right (e, c) -> do
         put c
-        rest <- evalStarS e
-        return $ exp : rest
+        (rest, str) <- evalStarS e
+        return (exp : rest, str)
 
   -- | Pretty prints the result of evalStar, starting from an empty state.
   -- Only works if the expression implements 'Show'.
@@ -53,9 +49,9 @@ class Expression e where
   -- implements 'Show'.
   evalStarPrintS :: Show e => Context -> e -> IO ()
   evalStarPrintS c exp = do
-    let (exps, ctxt) = runState (evalStarS exp) c
+    let ((exps, msg), ctxt) = runState (evalStarS exp) c
     forM_ (zip [0..] exps) $
         \(i, exp) -> putStrLn $ "Step " ++ show i ++ ":\n" ++ show exp ++ "\n"
-    putStrLn $ if not (null ctxt) && M.member "_" ctxt
-      then "Evaluation failed due to having undefined variable(s)!"
-      else "Final state: " ++ show (M.toList ctxt)
+    putStrLn $ if msg == "Already in normal form!"
+      then "Final state: " ++ show (M.toList ctxt)
+      else msg

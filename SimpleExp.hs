@@ -1,5 +1,4 @@
 {-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 
 module SimpleExp where
 
@@ -13,8 +12,9 @@ import Text.Parsec.String
 import Text.Parsec.Expr
 import Text.Parsec.Token
 import Text.Parsec.Language
-import Utilities ( eatBlankSpace, int )
+import Utilities ( eatBlankSpace, int, encodeErr )
 import Control.Monad
+import Data.Maybe
 
 instance Expression SimpleExp where
   -- | Is normal (irreducible).
@@ -65,22 +65,24 @@ instance Expression SimpleExp where
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- stuck state.
-  eval1S :: SimpleExp -> StateT Context Maybe SimpleExp
+  eval1S :: SimpleExp -> StateT Context (Either String) SimpleExp
   eval1S e = do
     let binOp op e e' fromValMaybe toVal toExp = case (e, e') of
           (EVal l, EVal r) -> do
-            lv <- lift $ fromValMaybe l
-            rv <- lift $ fromValMaybe r
+            lv <- lift $ encodeErr "Type Error!" $ fromValMaybe l
+            rv <- lift $ encodeErr "Type Error!" $ fromValMaybe r
             return $ EVal $ toVal $ lv `op` rv
           (EVal l, e')     -> toExp e <$> eval1S e'
           (e,      e')     -> flip toExp e' <$> eval1S e
     let unOp op e fromValMaybe toVal toExp = case e of
-          (EVal v) -> EVal . toVal . op <$> lift (fromValMaybe v)
+          (EVal v) -> EVal . toVal . op
+            <$> lift (encodeErr "Type Error!" $ fromValMaybe v)
           e        -> toExp <$> eval1S e
     c <- get
     case e of
-      EVar v    -> EVal <$> lift (M.lookup v c)
-      EVal _    -> lift Nothing
+      EVar v    -> fmap EVal $ lift $ 
+        encodeErr ("Undefined variable " ++ v ++ "!") $ M.lookup v c
+      EVal _    -> lift $ Left "Already in normal form!"
       Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum  Plus
       Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum  Mnus
       Prod e e' -> binOp (*)  e e' fromNumMaybe  VNum  Prod
@@ -99,18 +101,20 @@ instance Expression SimpleExp where
         lift $ numArgs `mplus` boolArgs
       And e e'  -> case (e, e') of
           (EVal l, EVal r) -> do
-            lv <- lift $ fromBoolMaybe l
+            lv <- lift (encodeErr "Type Error!" $ fromBoolMaybe l)
             if not lv
               then return $ EVal $ VBool False
-              else EVal . VBool <$> lift (fromBoolMaybe r)
+              else EVal . VBool <$> lift 
+                (encodeErr "Type Error!" $ fromBoolMaybe r)
           (EVal l, e')     -> And e <$> eval1S e'
           (e,      e')     -> flip And e' <$> eval1S e
       Or  e e'  -> case (e, e') of
           (EVal l, EVal r) -> do
-            lv <- lift $ fromBoolMaybe l
+            lv <- lift (encodeErr "Type Error!" $ fromBoolMaybe l)
             if lv
               then return $ EVal $ VBool True
-              else EVal . VBool <$> lift (fromBoolMaybe r)
+              else EVal . VBool <$> lift 
+                (encodeErr "Type Error!" $ fromBoolMaybe r)
           (EVal l, e')     -> Or e <$> eval1S e'
           (e,      e')     -> flip Or e' <$> eval1S e
 

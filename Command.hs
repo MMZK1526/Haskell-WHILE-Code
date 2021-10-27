@@ -28,51 +28,46 @@ instance Expression Command where
         EVal v <- evalS exp
         put $ M.insert x v c
         return Skip
-      c :+: c'     -> do
+      c :+: c'   -> do
         r <- evalS c
         case r of
           Ret res -> return $ Ret res
           Skip    -> evalS c'
-          -- Stuck State
-          _       -> return (r :+: c')
+          _       -> lift Nothing
       If b c c'  -> do
         EVal cond <- evalS b
         case cond of
           VBool True  -> evalS c
           VBool False -> evalS c'
-          -- Stuck State
-          _ -> lift Nothing
+          _           -> lift Nothing
       While b c  -> evalS $ If b (c :+: While b c) Skip
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- stuck state.
-  eval1S :: Command -> StateT Context Maybe Command
+  eval1S :: Command -> StateT Context (Either String) Command
   eval1S lang = do
     c <- get
     case lang of
-      Skip :+: com -> return com    -- W-SEQ.SKIP
-      com :+: com' -> do            -- W-SEQ.LEFT
+      Skip :+: com                  -> return com
+      com :+: com'                  -> do
         lang' <- eval1S com
         case lang' of
           Ret (EVal v) -> return $ Ret $ EVal v
           com''        -> return $ com'' :+: com'
-      Asgn x (EVal v) -> do         -- W-ASS.NUM
+      Asgn x (EVal v)               -> do
         put $ M.insert x v c
         return Skip
-      Asgn x exp -> do              -- W-ASS.EXP
+      Asgn x exp                    -> do
         exp' <- eval1S exp
         return $ Asgn x exp'
-      If (EVal (VBool True)) com _  -- W-COND.TRUE
-        -> return com
-      If (EVal (VBool False)) _ com -- W-COND.FALSE
-        -> return com
-      If b com com' -> do          -- W-COND.BEXP
+      If (EVal (VBool True)) com _  -> return com
+      If (EVal (VBool False)) _ com -> return com
+      If b com com'                 -> do
         b' <- eval1S b
         return $ If b' com com'
-      Ret exp    -> Ret <$> eval1S exp
-      While b c  -> return $       -- W-WHILE
-        If b (c :+: While b c) Skip
-      _               -> lift Nothing
+      Ret exp                       -> Ret <$> eval1S exp
+      While b c                     -> return $ If b (c :+: While b c) Skip
+      _                             -> lift $ Left "Already in normal form!"
 
 comFact :: Command
 comFact

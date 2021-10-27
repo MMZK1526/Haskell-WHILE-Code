@@ -110,7 +110,8 @@ expParser = eatBlankSpace >> parser' <* eof
           , caseSensitive = True
           , opStart = oneOf ""
           , opLetter = oneOf ""
-          , reservedOpNames = ["+", "-", "*", "<=", ">=", "==", "!=", "<", ">"]
+          , reservedOpNames
+              = ["+", "-", "*", "<=", ">=", "==", "!=", "<", ">", "&", "|", "!"]
           , reservedNames = ["true", "false"]
           }
     expTerm =
@@ -126,10 +127,13 @@ expParser = eatBlankSpace >> parser' <* eof
         ]
       , [ Infix (expReservedOp "<=" >> return ELE) AssocLeft
         , Infix (expReservedOp ">=" >> return EGE) AssocLeft
-        , Infix (expReservedOp "<" >> return ELT) AssocLeft
-        , Infix (expReservedOp ">" >> return EGT) AssocLeft
+        , Infix (expReservedOp "<"  >> return ELT) AssocLeft
+        , Infix (expReservedOp ">"  >> return EGT) AssocLeft
         ]
       , [ Infix (expReservedOp "!=" >> return ENE) AssocLeft
-        , Infix (expReservedOp "=" >> return EEQ) AssocLeft
+        , Infix (expReservedOp "="  >> return EEQ) AssocLeft
         ]
+      , [ Infix  (expReservedOp "&" >> return And) AssocLeft ]
+      , [ Infix  (expReservedOp "|" >> return Or)  AssocLeft ]
+      , [ Prefix (expReservedOp "!" >> return Not) ]
       ]

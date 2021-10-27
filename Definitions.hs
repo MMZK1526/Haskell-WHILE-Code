@@ -51,13 +51,16 @@ getOpSymbol :: SimpleExp -> String
 getOpSymbol Prod {} = " * "
 getOpSymbol Plus {} = " + "
 getOpSymbol Mnus {} = " - "
-getOpSymbol ELT {} = " < "
-getOpSymbol EGT {} = " > "
-getOpSymbol ELE {} = " <= "
-getOpSymbol EGE {} = " >= "
-getOpSymbol ENE {} = " != "
-getOpSymbol EEQ {} = " = "
-getOpSymbol _      = undefined
+getOpSymbol ELT  {} = " < "
+getOpSymbol EGT  {} = " > "
+getOpSymbol ELE  {} = " <= "
+getOpSymbol EGE  {} = " >= "
+getOpSymbol ENE  {} = " != "
+getOpSymbol EEQ  {} = " = "
+getOpSymbol And  {} = " & "
+getOpSymbol Or   {} = " | "
+getOpSymbol Not  {} = " ! "
+getOpSymbol _       = undefined
 
 {-# INLINE precOrd #-}
 precOrd :: SimpleExp -> SimpleExp -> Ordering
@@ -68,7 +71,7 @@ instance Show SimpleExp where
   show (EVal v) = show v
   show (EVar v) = v
   show exp@(Not b)
-    = applyOn (precOrd exp e /= LT) addBrace (show e)
+    = '!' : applyOn (precOrd exp e /= LT) addBrace (show e)
     where
       e = exp1 exp
   show exp 

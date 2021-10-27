@@ -17,7 +17,7 @@ instance Expression Command where
   isNormal (Ret r) = isNormal r
   isNormal _       = False
 
-  -- | Big-Step evaluation.
+  -- | Big-Step evaluation. Encoded with Nothing if cannot reach normal state.
   evalS :: Command -> StateT Context Maybe Command
   evalS lang = do
     c <- get

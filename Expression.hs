@@ -12,7 +12,7 @@ class Expression e where
   -- | Is normal (irreducible).
   isNormal :: e -> Bool
 
-  -- | Big-Step evaluation.
+  -- | Big-Step evaluation. Encoded with Nothing if cannot reach normal state.
   evalS :: e -> StateT Context Maybe e
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or

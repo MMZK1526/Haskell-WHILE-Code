@@ -23,7 +23,7 @@ instance Expression SimpleExp where
   isNormal EVal {} = True
   isNormal _       = False
 
-  -- | Big-Step evaluation.
+  -- | Big-Step evaluation. Encoded with Nothing if cannot reach normal state.
   evalS :: SimpleExp -> StateT Context Maybe SimpleExp
   evalS e = do
     c <- get
@@ -43,6 +43,7 @@ instance Expression SimpleExp where
       EGT  e e' -> binOp (>)  e e' fromNumMaybe VBool
       ELE  e e' -> binOp (<=) e e' fromNumMaybe VBool
       EGE  e e' -> binOp (>=) e e' fromNumMaybe VBool
+      Not  e    -> unOp  not  e    fromBoolMaybe VBool
       EEQ  e e' -> do
         let numArgs  = evalStateT (binOp (==) e e' fromNumMaybe VBool) c
         let boolArgs = evalStateT (binOp (==) e e' fromBoolMaybe VBool) c
@@ -61,7 +62,6 @@ instance Expression SimpleExp where
         if l
           then return $ EVal $ VBool True
           else EVal . VBool <$> (evalS e' >>= lift . fromBoolMaybe . val)
-      Not  e    -> unOp  not  e    fromBoolMaybe VBool
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- stuck state.
@@ -88,6 +88,7 @@ instance Expression SimpleExp where
       EGT e e'  -> binOp (>)  e e' fromNumMaybe  VBool EGT
       ELE e e'  -> binOp (<=) e e' fromNumMaybe  VBool ELE
       EGE e e'  -> binOp (>=) e e' fromNumMaybe  VBool EGE
+      Not e     -> unOp  not  e    fromBoolMaybe VBool Not
       ENE e e'  -> do
         let numArgs  = evalStateT (binOp (/=) e e' fromNumMaybe VBool ENE) c
         let boolArgs = evalStateT (binOp (/=) e e' fromBoolMaybe VBool ENE) c
@@ -112,13 +113,12 @@ instance Expression SimpleExp where
               else EVal . VBool <$> lift (fromBoolMaybe r)
           (EVal l, e')     -> Or e <$> eval1S e'
           (e,      e')     -> flip Or e' <$> eval1S e
-      Not e     -> unOp  not  e    fromBoolMaybe VBool Not
 
 -- | The parser for SimpleExp
 expParser :: Parser SimpleExp
 expParser = eatBlankSpace >> parser' <* eof
   where
-    parser' = buildExpressionParser expTable expTerm <?> "Expression"
+    parser' = buildExpressionParser expTable expTerm
     TokenParser
       { parens = expParens
       , identifier = expIdentifier

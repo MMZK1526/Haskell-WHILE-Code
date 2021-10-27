@@ -3,9 +3,9 @@
 module SimpleExp where
 
 import qualified Data.Map as M
-import Control.Monad.Trans.Class
-import Control.Monad.Trans.State
-import Expression ( Expression(..) )
+import Control.Monad.Trans.Class ( MonadTrans(lift) )
+import Control.Monad.Trans.State ( evalStateT, get, StateT )
+import Expression
 import Definitions
 import Text.Parsec hiding (State)
 import Text.Parsec.String
@@ -15,6 +15,7 @@ import Text.Parsec.Language
 import Utilities ( eatBlankSpace, int, encodeErr )
 import Control.Monad
 import Data.Maybe
+import EvalError
 
 instance Expression SimpleExp where
   -- | Is normal (irreducible).
@@ -65,24 +66,24 @@ instance Expression SimpleExp where
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- stuck state.
-  eval1S :: SimpleExp -> StateT Context (Either String) SimpleExp
+  eval1S :: SimpleExp -> StateT Context (Either EvalError) SimpleExp
   eval1S e = do
     let binOp op e e' fromValMaybe toVal toExp = case (e, e') of
           (EVal l, EVal r) -> do
-            lv <- lift $ encodeErr "Type Error!" $ fromValMaybe l
-            rv <- lift $ encodeErr "Type Error!" $ fromValMaybe r
+            lv <- lift $ encodeErr TypeError $ fromValMaybe l
+            rv <- lift $ encodeErr TypeError $ fromValMaybe r
             return $ EVal $ toVal $ lv `op` rv
           (EVal l, e')     -> toExp e <$> eval1S e'
           (e,      e')     -> flip toExp e' <$> eval1S e
     let unOp op e fromValMaybe toVal toExp = case e of
           (EVal v) -> EVal . toVal . op
-            <$> lift (encodeErr "Type Error!" $ fromValMaybe v)
+            <$> lift (encodeErr TypeError $ fromValMaybe v)
           e        -> toExp <$> eval1S e
     c <- get
     case e of
       EVar v    -> fmap EVal $ lift $ 
-        encodeErr ("Undefined variable " ++ v ++ "!") $ M.lookup v c
-      EVal _    -> lift $ Left "Already in normal form!"
+        encodeErr (UndefVarError v) $ M.lookup v c
+      EVal _    -> lift $ Left NormalFormError
       Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum  Plus
       Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum  Mnus
       Prod e e' -> binOp (*)  e e' fromNumMaybe  VNum  Prod
@@ -94,27 +95,27 @@ instance Expression SimpleExp where
       ENE e e'  -> do
         let numArgs  = evalStateT (binOp (/=) e e' fromNumMaybe VBool ENE) c
         let boolArgs = evalStateT (binOp (/=) e e' fromBoolMaybe VBool ENE) c
-        lift $ numArgs `mplus` boolArgs
+        lift $ numArgs <> boolArgs
       EEQ e e'  -> do
         let numArgs  = evalStateT (binOp (==) e e' fromNumMaybe VBool EEQ) c
         let boolArgs = evalStateT (binOp (==) e e' fromBoolMaybe VBool EEQ) c
-        lift $ numArgs `mplus` boolArgs
+        lift $ numArgs <> boolArgs
       And e e'  -> case (e, e') of
           (EVal l, EVal r) -> do
-            lv <- lift (encodeErr "Type Error!" $ fromBoolMaybe l)
+            lv <- lift (encodeErr TypeError $ fromBoolMaybe l)
             if not lv
               then return $ EVal $ VBool False
               else EVal . VBool <$> lift 
-                (encodeErr "Type Error!" $ fromBoolMaybe r)
+                (encodeErr TypeError $ fromBoolMaybe r)
           (EVal l, e')     -> And e <$> eval1S e'
           (e,      e')     -> flip And e' <$> eval1S e
       Or  e e'  -> case (e, e') of
           (EVal l, EVal r) -> do
-            lv <- lift (encodeErr "Type Error!" $ fromBoolMaybe l)
+            lv <- lift (encodeErr TypeError $ fromBoolMaybe l)
             if lv
               then return $ EVal $ VBool True
               else EVal . VBool <$> lift 
-                (encodeErr "Type Error!" $ fromBoolMaybe r)
+                (encodeErr TypeError $ fromBoolMaybe r)
           (EVal l, e')     -> Or e <$> eval1S e'
           (e,      e')     -> flip Or e' <$> eval1S e
 

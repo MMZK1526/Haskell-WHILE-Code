@@ -6,6 +6,7 @@ import qualified Data.Map as M
 import Control.Monad.Trans.State
 import Control.Monad
 import Definitions
+import EvalError
 
 -- | Type class for an expression based on recursively defined rules.
 class Expression e where
@@ -17,7 +18,7 @@ class Expression e where
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- stuck state.
-  eval1S :: e -> StateT Context (Either String) e
+  eval1S :: e -> StateT Context (Either EvalError) e
 
   -- | Big-Step evaluation, starting from an empty state, discarding the state.
   eval :: e -> Maybe e
@@ -34,7 +35,7 @@ class Expression e where
   evalStarS exp = do
     ctxt <- get
     case runStateT (eval1S exp) ctxt of
-      Left str     -> return ([exp], str)
+      Left str     -> return ([exp], show str)
       Right (e, c) -> do
         put c
         (rest, str) <- evalStarS e
@@ -52,6 +53,6 @@ class Expression e where
     let ((exps, msg), ctxt) = runState (evalStarS exp) c
     forM_ (zip [0..] exps) $
         \(i, exp) -> putStrLn $ "Step " ++ show i ++ ":\n" ++ show exp ++ "\n"
-    putStrLn $ if msg == "Already in normal form!"
+    putStrLn $ if msg == show NormalFormError
       then "Final state: " ++ show (M.toList ctxt)
       else msg

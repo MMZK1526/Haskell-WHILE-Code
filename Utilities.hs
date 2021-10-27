@@ -7,6 +7,7 @@ import Control.Monad.Identity ( void, Identity )
 import Text.Parsec ( Parsec, Stream )
 import Text.Parsec.Char ( char, digit, oneOf )
 import Text.Parsec.Prim ( Stream, Parsec, many, try )
+import EvalError
 
 -- | Add a pair of round braces to the String.
 {-# INLINE addBrace #-}
@@ -31,6 +32,6 @@ int = read <$> do
   void (try (void $ many $ char ' '))
   return (f : r)
 
--- | Transform a Maybe to a Either String
-encodeErr :: String -> Maybe a -> Either String a
+-- | Transform a Maybe to a Either EvalError
+encodeErr :: EvalError -> Maybe a -> Either EvalError a
 encodeErr = flip maybe Right . Left

@@ -8,6 +8,7 @@ import SimpleExp
 import Expression
 import Definitions
 import Control.Monad.Trans
+import EvalError
 
 instance Expression Command where
   -- | Is normal (irreducible).
@@ -44,7 +45,7 @@ instance Expression Command where
 
   -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
   -- stuck state.
-  eval1S :: Command -> StateT Context (Either String) Command
+  eval1S :: Command -> StateT Context (Either EvalError) Command
   eval1S lang = do
     c <- get
     case lang of
@@ -67,7 +68,7 @@ instance Expression Command where
         return $ If b' com com'
       Ret exp                       -> Ret <$> eval1S exp
       While b c                     -> return $ If b (c :+: While b c) Skip
-      _                             -> lift $ Left "Already in normal form!"
+      _                             -> lift $ Left NormalFormError 
 
 comFact :: Command
 comFact

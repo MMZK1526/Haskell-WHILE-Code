@@ -121,7 +121,8 @@ expParser = eatBlankSpace >> parser' <* eof
       <|> EVal <$> (expReserved "true" >> return (VBool True))
       <|> EVal <$> (expReserved "false" >> return (VBool False))
     expTable =
-      [ [ Infix (expReservedOp "*" >> return Prod) AssocLeft ]
+      [ [ Prefix (expReservedOp "!" >> return Not) ]
+      , [ Infix (expReservedOp "*" >> return Prod) AssocLeft ]
       , [ Infix (expReservedOp "+" >> return Plus) AssocLeft
         , Infix (expReservedOp "-" >> return Mnus) AssocLeft
         ]
@@ -135,5 +136,4 @@ expParser = eatBlankSpace >> parser' <* eof
         ]
       , [ Infix  (expReservedOp "&" >> return And) AssocLeft ]
       , [ Infix  (expReservedOp "|" >> return Or)  AssocLeft ]
-      , [ Prefix (expReservedOp "!" >> return Not) ]
       ]

@@ -76,7 +76,7 @@ instance Expression SimpleExp where
           (e,      e')     -> flip toExp e' <$> eval1S e
     let unOp op e fromValMaybe toVal toExp = case e of
           (EVal v) -> EVal . toVal . op <$> lift (fromValMaybe v)
-          e        -> toExp <$> eval1S e 
+          e        -> toExp <$> eval1S e
     c <- get
     case e of
       EVar v    -> EVal <$> lift (M.lookup v c)
@@ -155,6 +155,9 @@ expParser = eatBlankSpace >> parser' <* eof
         , Infix (expReservedOp "==" >> return EEQ) AssocLeft
         , Infix (expReservedOp "="  >> return EEQ) AssocLeft
         ]
-      , [ Infix  (expReservedOp "&" >> return And) AssocLeft ]
-      , [ Infix  (expReservedOp "|" >> return Or)  AssocLeft ]
+      , [ Infix  (expReservedOp "&&" >> return And) AssocLeft
+        , Infix  (expReservedOp "&"  >> return And) AssocLeft
+        ]
+      , [ Infix (expReservedOp "||" >> return Or) AssocLeft
+        , Infix (expReservedOp "|"  >> return Or) AssocLeft ]
       ]

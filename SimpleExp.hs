@@ -23,19 +23,20 @@ instance Expression SimpleExp where
   isNormal EVal {} = True
   isNormal _       = False
 
-  -- | Big-Step evaluation. Encoded with Nothing if cannot reach normal state.
-  evalS :: SimpleExp -> StateT Context Maybe SimpleExp
+  -- | Big-Step evaluation. Encoded with an error if cannot reach normal state.
+  evalS :: SimpleExp -> StateT Context (Either EvalError) SimpleExp
   evalS e = do
-    c <- get
+    c <- get 
     let binOp op e e' fromValMaybe toVal = do
-          l <- evalS e  >>= lift . fromValMaybe . val
-          r <- evalS e' >>= lift . fromValMaybe . val
+          l <- evalS e  >>= lift . encodeErr TypeError . fromValMaybe . val
+          r <- evalS e' >>= lift . encodeErr TypeError . fromValMaybe . val
           return $ EVal $ toVal $ l `op` r
     let unOp op e fromValMaybe toVal
-          = EVal . toVal . op <$> (evalS e >>= lift . fromValMaybe . val)
+          = EVal . toVal . op <$> 
+            (evalS e >>= lift . encodeErr TypeError .fromValMaybe . val)
     case e of
       EVal v    -> return $ EVal v
-      EVar v    -> EVal <$> lift (M.lookup v c)
+      EVar v    -> EVal <$> lift (encodeErr (UndefVarError v) $ M.lookup v c)
       Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum
       Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum
       Prod e e' -> binOp (*)  e e' fromNumMaybe  VNum
@@ -47,21 +48,23 @@ instance Expression SimpleExp where
       EEQ  e e' -> do
         let numArgs  = evalStateT (binOp (==) e e' fromNumMaybe VBool) c
         let boolArgs = evalStateT (binOp (==) e e' fromBoolMaybe VBool) c
-        lift $ numArgs `mplus` boolArgs
+        lift $ numArgs <> boolArgs
       ENE  e e' -> do
         let numArgs  = evalStateT (binOp (==) e e' fromNumMaybe VBool) c
         let boolArgs = evalStateT (binOp (==) e e' fromBoolMaybe VBool) c
-        lift $ numArgs `mplus` boolArgs
+        lift $ numArgs <> boolArgs
       And  e e' -> do
-        l <- evalS e >>= lift . fromBoolMaybe . val
+        l <- evalS e >>= lift . encodeErr TypeError . fromBoolMaybe . val
         if not l
           then return $ EVal $ VBool False
-          else EVal . VBool <$> (evalS e' >>= lift . fromBoolMaybe . val)
+          else EVal . VBool <$> 
+            (evalS e' >>= lift . encodeErr TypeError .  fromBoolMaybe . val)
       Or   e e' -> do
-        l <- evalS e >>= lift . fromBoolMaybe . val
+        l <- evalS e >>= lift . encodeErr TypeError . fromBoolMaybe . val
         if l
           then return $ EVal $ VBool True
-          else EVal . VBool <$> (evalS e' >>= lift . fromBoolMaybe . val)
+          else EVal . VBool <$> 
+            (evalS e' >>= lift . encodeErr TypeError . fromBoolMaybe . val)
 
   -- | Small-Step evaluation. Encoded with an error if either in normal form or
   -- stuck state.

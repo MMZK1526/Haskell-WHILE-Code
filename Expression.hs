@@ -13,19 +13,19 @@ class Expression e where
   -- | Is normal (irreducible).
   isNormal :: e -> Bool
 
-  -- | Big-Step evaluation. Encoded with Nothing if cannot reach normal state.
-  evalS :: e -> StateT Context Maybe e
+  -- | Big-Step evaluation. Encoded with an error if cannot reach normal state.
+  evalS :: e -> StateT Context (Either EvalError) e
   
   -- | Small-Step evaluation. Encoded with an error if either in normal form or
   -- stuck state.
   eval1S :: e -> StateT Context (Either EvalError) e
 
   -- | Big-Step evaluation, starting from an empty state, discarding the state.
-  eval :: e -> Maybe e
+  eval :: e -> Either EvalError e
   eval exp = evalStateT (evalS exp) M.empty
 
   -- | Big-Step evaluation, discarding the state.
-  evalS' :: Context -> e -> Maybe e
+  evalS' :: Context -> e -> Either EvalError e
   evalS' c exp = evalStateT (evalS exp) c
 
   -- | Return a list of Expressions, each one is one-step reduced from the

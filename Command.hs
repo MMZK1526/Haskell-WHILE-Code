@@ -23,29 +23,31 @@ instance Expression Command where
   isNormal (Ret r) = isNormal r
   isNormal _       = False
 
-  -- | Big-Step evaluation. Encoded with Nothing if cannot reach normal state.
-  evalS :: Command -> StateT Context Maybe Command
+  -- | Big-Step evaluation. Encoded with an error if cannot reach normal state.
+  evalS :: Command -> StateT Context (Either EvalError) Command
   evalS lang = do
     c <- get
     case lang of
       Ret exp    -> Ret <$> evalS exp
       Skip       -> return Skip
       Asgn x exp -> do
-        EVal v <- evalS exp
-        put $ M.insert x v c
+        exp <- evalS exp
+        case exp of
+          EVal v -> put $ M.insert x v c
+          _      -> lift $ Left TypeError
         return Skip
       c :+: c'   -> do
         r <- evalS c
         case r of
           Ret res -> return $ Ret res
           Skip    -> evalS c'
-          _       -> lift Nothing
+          _       -> lift $ Left TypeError
       If b c c'  -> do
-        EVal cond <- evalS b
+        cond  <- evalS b
         case cond of
-          VBool True  -> evalS c
-          VBool False -> evalS c'
-          _           -> lift Nothing
+          EVal (VBool True)  -> evalS c
+          EVal (VBool False) -> evalS c'
+          _                  -> lift $ Left TypeError
       While b c  -> evalS $ If b (c :+: While b c) Skip
 
   -- | Small-Step evaluation. Encoded with an error if either in normal form or

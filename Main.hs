@@ -18,6 +18,7 @@ import Expression
 import Definitions
 import Token
 import SimpleExp
+import Control.Monad.Trans.State
 
 data WhileOptions 
   = OpHelp
@@ -31,8 +32,7 @@ usage = do
             \https://github.com/sorrowfulT-Rex/50003-Models-of-Computation."
 
 help :: IO ()
-help = do 
-  putStrLn "Run \"runghc main -h\" to for help."
+help = putStrLn "Run \"runghc main -h\" to for help."
 
 -- | Parses an argument given to the While code.
 parseArg :: String -> Either ParseError (String, Value)
@@ -44,8 +44,9 @@ parseArg = parse parser' "Argument Parser: "
       parseReservedOp "=" <|> parseReservedOp "!="
       e <- eval <$> expParser
       case e of
-        Just (EVal e) -> return (v, e)
-        _             -> fail $ "evaluation for argument " ++ v ++ "has failed!"
+        Right (EVal e) -> return (v, e)
+        Left err       -> fail $ "Failed to evaluate " ++ v ++ "! " ++ show err
+        _              -> error "UNREACHABLE!!"
 
 main :: IO ()
 main = do
@@ -57,19 +58,20 @@ main = do
   (b, ops) <- forMBreak ops $ \case 
     OpHelp -> usage >> return (False, Nothing :: Maybe WhileOptions)
   when b $ if null ins 
-    then help
-    else do
-      let (src : args) = ins
-      case forM args parseArg of
-        Left error    -> print error
-        Right context -> do
-        handleDNE ((>> help) . print) $ do
-          text <- T.readFile src
-          case parseCom $ T.unpack text of
-            Left error -> print error
-            Right com  -> do
-              putStr "result: "
-              case evalS' (M.fromList context) com of
-                Just Skip ->    putStrLn "void"
-                Just (Ret e) -> print e
-                _         ->    putStrLn "Evaluation Error!"
+  then help
+  else do
+  let (src : args) = ins
+  case forM args parseArg of
+    Left error    -> print error
+    Right context -> do
+    handleDNE ((>> help) . print) $ do
+    text <- T.readFile src
+    case parseCom $ T.unpack text of
+      Left error -> print error
+      Right com  -> do
+      case evalS' (M.fromList context) com of
+        Right Skip    -> putStrLn "Result: void"
+        Right (Ret e) -> putStrLn $ "Result:" ++ show e
+        Left err      -> putStrLn $ "Error evaluating " ++ src ++ ".\n" 
+                      ++ show err
+        _             -> error "UNREACHABLE!!"

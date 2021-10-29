@@ -10,12 +10,11 @@ import Definitions
 import Text.Parsec hiding (State)
 import Text.Parsec.String
 import Text.Parsec.Expr
-import Text.Parsec.Token
-import Text.Parsec.Language
 import Utilities ( int, encodeErr, eatWSP )
 import Control.Monad
 import Data.Maybe
 import EvalError
+import Token
 
 instance Expression SimpleExp where
   -- | Is normal (irreducible).
@@ -132,50 +131,30 @@ expParser = eatWSP >> expParser' <* eof
 expParser' :: Parser SimpleExp
 expParser' = buildExpressionParser expTable expTerm
  where
-    TokenParser
-      { parens = expParens
-      , identifier = expIdentifier
-      , reservedOp = expReservedOp
-      , reserved = expReserved
-      } = makeTokenParser $ LanguageDef
-          { identStart = letter
-          , identLetter = alphaNum
-          , caseSensitive = True
-          , opStart = oneOf ""
-          , opLetter = oneOf ""
-          , reservedOpNames
-              = ["+", "-", "*", "<=", ">=", "==", "!=", "<", ">", "&", "|", "!"]
-          , reservedNames = ["true", "false", "if", "else", "while"]
-          , commentStart = ""
-          , commentEnd = ""
-          , commentLine = ""
-          , nestedComments = False
-          , usedSpaces = (== ' ')
-          }
     expTerm
-        = expParens expParser'
-      <|> EVar <$> expIdentifier
+        = parseParens expParser'
+      <|> EVar <$> parseIdentifier
       <|> EVal . VNum <$> int
-      <|> EVal <$> (expReserved "true" >> return (VBool True))
-      <|> EVal <$> (expReserved "false" >> return (VBool False))
+      <|> EVal <$> (parseReserved "true" >> return (VBool True))
+      <|> EVal <$> (parseReserved "false" >> return (VBool False))
     expTable =
-      [ [ Prefix (expReservedOp "!" >> return Not) ]
-      , [ Infix (expReservedOp "*" >> return Prod) AssocLeft ]
-      , [ Infix (expReservedOp "+" >> return Plus) AssocLeft
-        , Infix (expReservedOp "-" >> return Mnus) AssocLeft
+      [ [ Prefix (parseReservedOp "!" >> return Not) ]
+      , [ Infix (parseReservedOp "*" >> return Prod) AssocLeft ]
+      , [ Infix (parseReservedOp "+" >> return Plus) AssocLeft
+        , Infix (parseReservedOp "-" >> return Mnus) AssocLeft
         ]
-      , [ Infix (expReservedOp "<=" >> return ELE) AssocLeft
-        , Infix (expReservedOp ">=" >> return EGE) AssocLeft
-        , Infix (expReservedOp "<"  >> return ELT) AssocLeft
-        , Infix (expReservedOp ">"  >> return EGT) AssocLeft
+      , [ Infix (parseReservedOp "<=" >> return ELE) AssocLeft
+        , Infix (parseReservedOp ">=" >> return EGE) AssocLeft
+        , Infix (parseReservedOp "<"  >> return ELT) AssocLeft
+        , Infix (parseReservedOp ">"  >> return EGT) AssocLeft
         ]
-      , [ Infix (expReservedOp "!=" >> return ENE) AssocLeft
-        , Infix (expReservedOp "==" >> return EEQ) AssocLeft
-        , Infix (expReservedOp "="  >> return EEQ) AssocLeft
+      , [ Infix (parseReservedOp "!=" >> return ENE) AssocLeft
+        , Infix (parseReservedOp "==" >> return EEQ) AssocLeft
+        , Infix (parseReservedOp "="  >> return EEQ) AssocLeft
         ]
-      , [ Infix  (expReservedOp "&&" >> return And) AssocLeft
-        , Infix  (expReservedOp "&"  >> return And) AssocLeft
+      , [ Infix  (parseReservedOp "&&" >> return And) AssocLeft
+        , Infix  (parseReservedOp "&"  >> return And) AssocLeft
         ]
-      , [ Infix (expReservedOp "||" >> return Or) AssocLeft
-        , Infix (expReservedOp "|"  >> return Or) AssocLeft ]
+      , [ Infix (parseReservedOp "||" >> return Or) AssocLeft
+        , Infix (parseReservedOp "|"  >> return Or) AssocLeft ]
       ]

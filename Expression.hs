@@ -24,6 +24,10 @@ class Expression e where
   eval :: e -> Maybe e
   eval exp = evalStateT (evalS exp) M.empty
 
+  -- | Big-Step evaluation, discarding the state.
+  evalS' :: Context -> e -> Maybe e
+  evalS' c exp = evalStateT (evalS exp) c
+
   -- | Return a list of Expressions, each one is one-step reduced from the
   -- previous one. Starting from an empty state, discarding the state.
   evalStar :: e -> ([e], String)

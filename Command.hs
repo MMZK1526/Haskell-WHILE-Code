@@ -1,6 +1,5 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
 
 module Command where
 
@@ -13,10 +12,8 @@ import Control.Monad.Trans
 import EvalError
 import Text.Parsec.String
 import Text.Parsec
-import Text.Parsec.Token
-import Text.Parsec.Language
-import qualified Data.Text
 import Utilities ( eatWSP )
+import Token ( parseIdentifier, parseReservedOp, parseReserved )
 
 instance Expression Command where
   -- | Is normal (irreducible).
@@ -105,13 +102,11 @@ comParser = seqParser 0 <* eof
       <|> skipParser
     skipParser     = eatWSP >> return Skip
     returnParser   = do
-      comReserved "return" <|> return ()
+      parseReserved "return" <|> return ()
       Ret <$> expParser'
     assignParser   = do
-      v   <- comIdentifier
-      eatWSP
-      comReservedOp ":="
-      eatWSP
+      v   <- parseIdentifier
+      parseReservedOp ":="
       Asgn v <$> expParser'
     seqParser n    = do
       com <- blockParser n
@@ -124,41 +119,23 @@ comParser = seqParser 0 <* eof
     indentParser n = count n (char ' ') 
       <?> "indentation of " ++ show n ++ " spaces!"
     whileParser n  = do
-      comReserved "while"
+      parseReserved "while"
       exp <- expParser'
       char '\n'
       indentParser (n + 2)
       com <- seqParser (n + 2)
       return $ While exp com
     ifParser n     = do
-      comReserved "if"
+      parseReserved "if"
       exp  <- expParser'
       char '\n'
       indentParser (n + 2)
       com  <- seqParser (n + 2)
       char '\n'
       indentParser n
-      comReserved "else"
+      parseReserved "else"
       char '\n'
       indentParser (n + 2)
       com' <- seqParser (n + 2)
       return $ If exp com com'
-      
-    TokenParser
-      { identifier = comIdentifier
-      , reservedOp = comReservedOp
-      , reserved = comReserved
-      } = makeTokenParser $ LanguageDef
-          { identStart = letter
-          , identLetter = alphaNum
-          , caseSensitive = True
-          , opStart = oneOf ""
-          , opLetter = oneOf ""
-          , reservedOpNames = [":="]
-          , reservedNames = ["if", "else", "while", "return"]
-          , commentStart = ""
-          , commentEnd = ""
-          , commentLine = ""
-          , nestedComments = False
-          , usedSpaces = (== ' ')
-          }
+

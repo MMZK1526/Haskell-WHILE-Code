@@ -9,7 +9,7 @@ import Text.Parsec.Expr
 import Text.Parsec.Token
 import Text.Parsec.Language
 import Definitions
-import Utilities ( eatBlankSpace, int )
+import Utilities ( eatWSP, int )
 
 -- mainparser :: Parser Stmt
 -- mainparser = m_whiteSpace >> stmtparser <* eof

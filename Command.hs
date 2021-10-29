@@ -1,14 +1,22 @@
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
 module Command where
 
 import qualified Data.Map as M
 import Control.Monad.Trans.State
-import SimpleExp ()
+import SimpleExp
 import Expression
 import Definitions
 import Control.Monad.Trans
 import EvalError
+import Text.Parsec.String
+import Text.Parsec
+import Text.Parsec.Token
+import Text.Parsec.Language
+import Text.Parsec.Expr
+import Utilities (eatWSP)
 
 instance Expression Command where
   -- | Is normal (irreducible).
@@ -43,7 +51,7 @@ instance Expression Command where
           _           -> lift Nothing
       While b c  -> evalS $ If b (c :+: While b c) Skip
 
-  -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
+  -- | Small-Step evaluation. Encoded with an error if either in normal form or
   -- stuck state.
   eval1S :: Command -> StateT Context (Either EvalError) Command
   eval1S lang = do
@@ -63,12 +71,13 @@ instance Expression Command where
         return $ Asgn x exp'
       If (EVal (VBool True)) com _  -> return com
       If (EVal (VBool False)) _ com -> return com
+      If (EVal _) _ _               -> lift $ Left TypeError
       If b com com'                 -> do
         b' <- eval1S b
         return $ If b' com com'
       Ret exp                       -> Ret <$> eval1S exp
       While b c                     -> return $ If b (c :+: While b c) Skip
-      _                             -> lift $ Left NormalFormError 
+      _                             -> lift $ Left NormalFormError
 
 comFact :: Command
 comFact
@@ -79,3 +88,74 @@ comFact
     :+: Asgn "y" (Mnus (EVar "y") 1)
       )
   :+: Ret (EVar "a")
+
+-- | The parser for Command.
+comParser :: Parser Command
+comParser = seqParser 0 <* eof
+  where
+    blockParser n  =
+        ( try assignParser
+      <|> whileParser n
+      <|> ifParser n
+      <|> returnParser
+      <|> skipParser
+        )
+    skipParser     = eatWSP >> return Skip
+    returnParser   = do
+      comReserved "return" <|> return ()
+      Ret <$> expParser'
+    assignParser   = do
+      v   <- comIdentifier
+      eatWSP
+      comReservedOp ":="
+      eatWSP
+      Asgn v <$> expParser'
+    seqParser n    = do
+      com <- blockParser n
+      (eof >> return com) <|> do
+      try (do char '\n'
+              indentParser n
+              com' <- seqParser n
+              return (com :+: com')
+          ) <|> return com
+    indentParser n = count n (char ' ') 
+      <?> "indentation of " ++ show n ++ " spaces!"
+    whileParser n  = do
+      comReserved "while"
+      exp <- expParser'
+      char '\n'
+      indentParser (n + 2)
+      com <- seqParser (n + 2)
+      return $ While exp com
+    ifParser n     = do
+      comReserved "if"
+      exp  <- expParser'
+      char '\n'
+      indentParser (n + 2)
+      com  <- seqParser (n + 2)
+      char '\n'
+      indentParser n
+      comReserved "else"
+      char '\n'
+      indentParser (n + 2)
+      com' <- seqParser (n + 2)
+      return $ If exp com com'
+      
+    TokenParser
+      { identifier = comIdentifier
+      , reservedOp = comReservedOp
+      , reserved = comReserved
+      } = makeTokenParser $ LanguageDef
+          { identStart = letter
+          , identLetter = alphaNum
+          , caseSensitive = True
+          , opStart = oneOf ""
+          , opLetter = oneOf ""
+          , reservedOpNames = [":="]
+          , reservedNames = ["if", "else", "while", "return"]
+          , commentStart = ""
+          , commentEnd = ""
+          , commentLine = ""
+          , nestedComments = False
+          , usedSpaces = (== ' ')
+          }

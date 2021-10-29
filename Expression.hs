@@ -15,8 +15,8 @@ class Expression e where
 
   -- | Big-Step evaluation. Encoded with Nothing if cannot reach normal state.
   evalS :: e -> StateT Context Maybe e
-
-  -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
+  
+  -- | Small-Step evaluation. Encoded with an error if either in normal form or
   -- stuck state.
   eval1S :: e -> StateT Context (Either EvalError) e
 

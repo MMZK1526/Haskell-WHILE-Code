@@ -12,7 +12,7 @@ import Text.Parsec.String
 import Text.Parsec.Expr
 import Text.Parsec.Token
 import Text.Parsec.Language
-import Utilities ( eatBlankSpace, int, encodeErr )
+import Utilities ( int, encodeErr, eatWSP )
 import Control.Monad
 import Data.Maybe
 import EvalError
@@ -64,7 +64,7 @@ instance Expression SimpleExp where
           then return $ EVal $ VBool True
           else EVal . VBool <$> (evalS e' >>= lift . fromBoolMaybe . val)
 
-  -- | Small-Step evaluation. Encoded with Nothing if either in normal form or
+  -- | Small-Step evaluation. Encoded with an error if either in normal form or
   -- stuck state.
   eval1S :: SimpleExp -> StateT Context (Either EvalError) SimpleExp
   eval1S e = do
@@ -119,17 +119,25 @@ instance Expression SimpleExp where
           (EVal l, e')     -> Or e <$> eval1S e'
           (e,      e')     -> flip Or e' <$> eval1S e
 
--- | The parser for SimpleExp
+-- Parses a SimpleExp.
+parseExp :: String -> Either ParseError SimpleExp
+parseExp = parse expParser "Simple Expression Parser: "
+
+-- The parser for SimpleExp (ignoring indentation).
 expParser :: Parser SimpleExp
-expParser = eatBlankSpace >> parser' <* eof
-  where
-    parser' = buildExpressionParser expTable expTerm
+expParser = eatWSP >> expParser' <* eof
+
+-- | The parser for SimpleExp (no indentation allowed, ingore unparseable final 
+-- parts).
+expParser' :: Parser SimpleExp
+expParser' = buildExpressionParser expTable expTerm
+ where
     TokenParser
       { parens = expParens
       , identifier = expIdentifier
       , reservedOp = expReservedOp
       , reserved = expReserved
-      } = makeTokenParser $ emptyDef
+      } = makeTokenParser $ LanguageDef
           { identStart = letter
           , identLetter = alphaNum
           , caseSensitive = True
@@ -137,10 +145,15 @@ expParser = eatBlankSpace >> parser' <* eof
           , opLetter = oneOf ""
           , reservedOpNames
               = ["+", "-", "*", "<=", ">=", "==", "!=", "<", ">", "&", "|", "!"]
-          , reservedNames = ["true", "false"]
+          , reservedNames = ["true", "false", "if", "else", "while"]
+          , commentStart = ""
+          , commentEnd = ""
+          , commentLine = ""
+          , nestedComments = False
+          , usedSpaces = (== ' ')
           }
     expTerm
-        = expParens parser'
+        = expParens expParser'
       <|> EVar <$> expIdentifier
       <|> EVal . VNum <$> int
       <|> EVal <$> (expReserved "true" >> return (VBool True))

@@ -15,8 +15,8 @@ import Text.Parsec.String
 import Text.Parsec
 import Text.Parsec.Token
 import Text.Parsec.Language
-import Text.Parsec.Expr
-import Utilities (eatWSP)
+import qualified Data.Text
+import Utilities ( eatWSP )
 
 instance Expression Command where
   -- | Is normal (irreducible).
@@ -89,17 +89,20 @@ comFact
       )
   :+: Ret (EVar "a")
 
+-- Parses a Command.
+parseCom :: String -> Either ParseError Command
+parseCom = parse comParser "While Command Parser: "
+
 -- | The parser for Command.
 comParser :: Parser Command
 comParser = seqParser 0 <* eof
   where
     blockParser n  =
-        ( try assignParser
+          try assignParser
       <|> whileParser n
       <|> ifParser n
       <|> returnParser
       <|> skipParser
-        )
     skipParser     = eatWSP >> return Skip
     returnParser   = do
       comReserved "return" <|> return ()

@@ -1,0 +1,6 @@
+y := x
+a := 1
+while y > 0
+  a := a * y
+  y := y - 1
+return a

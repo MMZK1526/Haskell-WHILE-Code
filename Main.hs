@@ -87,8 +87,8 @@ runWhile src
          context 
          command = do
   case d of
-    NoContext   -> evalStarPrintS context command
-    FullContext -> evalStarPrintS context command
+    NoContext   -> evalStarPrintS     context command
+    FullContext -> evalStarPrintFullS context command
     NoDebug     -> case evalS' context command of
       Right Skip    -> putStrLn "Result: void"
       Right (Ret e) -> putStrLn $ "Result:" ++ show e

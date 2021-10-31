@@ -109,7 +109,7 @@ instance Show Command where
     where
       show' n (Asgn v exp) = replicate n ' ' ++ v ++ " := " ++ show exp
       show' n (c :+: c')   = show' n c ++ "\n" ++ show' n c'
-      show' _ Skip         = "[DO NOTHING]"
+      show' n Skip         = replicate n ' ' ++ "[DO NOTHING]"
       show' n (Ret exp)    = replicate n ' ' ++ show exp
       show' n (If b c c')  = replicate n ' ' ++ "if " ++ show b ++ "\n" ++
                              show' (n + 2) c ++ "\n" ++

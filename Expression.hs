@@ -15,7 +15,7 @@ class Expression e where
 
   -- | Big-Step evaluation. Encoded with an error if cannot reach normal state.
   evalS :: e -> StateT Context (Either EvalError) e
-  
+
   -- | Small-Step evaluation. Encoded with an error if either in normal form or
   -- stuck state.
   eval1S :: e -> StateT Context (Either EvalError) e
@@ -45,18 +45,46 @@ class Expression e where
         (rest, str) <- evalStarS e
         return (exp : rest, str)
 
+  -- | Return a list of Expressions and states, each one is one-step reduced 
+  -- from the previous one.
+  evalStarFullS :: e -> State Context [(Either EvalError e, Context)]
+  evalStarFullS exp = do
+    ctxt <- get
+    case runStateT (eval1S exp) ctxt of
+      Left e       -> return [(Left e, ctxt)]
+      Right (e, c) -> put c >> ((Right e, ctxt) :) <$> evalStarFullS e
+
   -- | Pretty prints the result of evalStar, starting from an empty state.
   -- Only works if the expression implements 'Show'.
   evalStarPrint :: Show e => e -> IO ()
   evalStarPrint = evalStarPrintS M.empty
 
-  -- | Pretty prints the result of evalStar. Only works if the expression
+  -- | Pretty prints the result of evalStarS. Only works if the expression
   -- implements 'Show'.
   evalStarPrintS :: Show e => Context -> e -> IO ()
   evalStarPrintS c exp = do
     let ((exps, msg), ctxt) = runState (evalStarS exp) c
-    forM_ (zip [0..] exps) $
-        \(i, exp) -> putStrLn $ "Step " ++ show i ++ ":\n" ++ show exp ++ "\n"
+    forM_ (zip [1..] exps) $
+      \(i, exp) -> putStrLn $ "Step " ++ show i ++ ":\n" ++ show exp ++ "\n"
     putStrLn $ if msg == show NormalFormError
       then "Final state: " ++ show (M.toList ctxt)
       else msg
+
+  -- | Pretty prints the result of evalStarFullS. Only works if the expression
+  -- implements 'Show'.
+  evalStarPrintFullS :: Show e => Context -> e -> IO ()
+  evalStarPrintFullS c exp = do
+    let expCtxts = evalState (evalStarFullS exp) c
+    forM_ (zip [1..] expCtxts) $ 
+      \(i, (exp, ctxt)) -> case exp of
+        Left NormalFormError -> putStrLn "Successfully evaluated!"
+        Left err  -> do
+          putStrLn $ "Step " ++ show i ++ ":"
+          print err
+          putStrLn $ "Current state: " ++ show (M.toList ctxt) ++ "\n"
+        Right exp -> do
+          putStrLn $ "Step " ++ show i ++ ":"
+          print exp
+          putStrLn $ "Current state: " ++ show (M.toList ctxt) ++ "\n"
+
+

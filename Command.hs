@@ -112,11 +112,11 @@ comParser = seqParser 0 <* eof
       Asgn v <$> expParser'
     seqParser n    = do
       com <- blockParser n
-      (eof >> return com) <|> do
+      (eof >> return com) <|> try (char '\n' >> eof >> return com) <|> do
       try (do char '\n'
               indentParser n
               com' <- seqParser n
-              return (com :+: com')
+              return $ com :+: com'
           ) <|> return com
     indentParser n = count n (char ' ') 
       <?> "indentation of " ++ show n ++ " spaces!"

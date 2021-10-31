@@ -37,22 +37,3 @@ int = read <$> do
 -- | Transform a Maybe to a Either EvalError
 encodeErr :: EvalError -> Maybe a -> Either EvalError a
 encodeErr = flip maybe Right . Left
-
--- | Iterates through a Foldable with a monadic action that returns a Bool and 
--- a Maybe value. Breaks the iteration when the Bool is False. Returns a Bool
--- indicating if the iteration is completed, and the list of all Just results.
-forMBreak :: Foldable t => Monad m => 
-  t a -> (a -> m (Bool, Maybe b)) -> m (Bool, [b])
-forMBreak xs f = go (toList xs) f
-  where
-    go [] _       = return (True, [])
-    go (x : xs) f = do
-      (b, r) <- f x 
-      if b 
-        then do
-          (b, rs) <- go xs f
-          return $ case r of
-            Just r -> (b, r : rs)
-            _      -> (b, rs)
-        else
-          return (False, [])

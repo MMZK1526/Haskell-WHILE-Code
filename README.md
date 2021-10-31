@@ -1,3 +1,5 @@
+Author: MMZK1526 *et ut* Yitang Chen
+
 # 50003-Models-of-Computation
 Implement the key points and algorithms from the Imperial College Course Models of Computation.  
 
@@ -18,8 +20,12 @@ E ::= n | v | E + E | E * E | ...
 ```v``` is a variable and ```n``` is an integer.
 
 I have modified it so that ```E``` and ```B``` are combined, but the types still matter, *i.e.* ```false + 3``` results in a type error:  
+
 ```
 C ::= C; C | v := E | if E then C else C | while E do C | Skip | return E
 E ::= true | false | not E | E or E | E and E | E < E | E = E | E > E | n | v | E + E | E * E | ...
 ```
-Note that I have introduced a ```return``` syntax. In the original ```While```, the answer configuration is always ```<Skip, s>```, in other word, the information is solely reflected by the state ```s```. Here by adding ```return```, we can have another answer configuraton ```<return E, s>```, where ```E``` is either an integer or a boolean, so that we don't have to look into the state to see a result. As you may have anticipated, the ```return``` command terminates the entire program.  
+
+Note that I have introduced a ```return``` syntax. In the original ```While```, the answer configuration is always ```<Skip, s>```, in other word, the information is solely reflected by the context[^1] ```s```. Here by adding ```return```, we can have another answer configuraton ```<return E, s>```, where ```E``` is either an integer or a boolean, so that we don't have to look into the context to see a result. As you may have anticipated, the ```return``` command terminates the entire program.  
+
+[^1]: In the course, the partial function that records the variables are called "state", but here we use the term "context" to differentiate it from the ```State``` Monad that is widely used in my implementation.  

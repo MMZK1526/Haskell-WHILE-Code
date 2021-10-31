@@ -82,13 +82,20 @@ parseArg = parse parser' "Argument Parser: "
 -- | Run the While program by the given file name, configuration, context and
 -- code. The file name is used on error handling only.
 runWhile :: String -> WhileConfig -> Context -> Command -> IO ()
-runWhile src config context command = do
-  case evalS' context command of
-    Right Skip    -> putStrLn "Result: void"
-    Right (Ret e) -> putStrLn $ "Result:" ++ show e
-    Left err      -> putStrLn $ "Error evaluating " ++ src ++ ".\n"
-                  ++ show err
-    _             -> error "UNREACHABLE!!"
+runWhile src 
+         Config { debugType = d, typeCheck = t } 
+         context 
+         command = do
+  case d of
+    NoContext   -> evalStarPrintS context command
+    FullContext -> evalStarPrintS context command
+    NoDebug     -> case evalS' context command of
+      Right Skip    -> putStrLn "Result: void"
+      Right (Ret e) -> putStrLn $ "Result:" ++ show e
+      Left err      -> putStrLn $ "Error evaluating " ++ src ++ ".\n"
+                    ++ show err
+      _             -> error "UNREACHABLE!!"
+runWhile _ _ _ _ = error "UNREACHABLE!!"
 
 main :: IO ()
 main = do

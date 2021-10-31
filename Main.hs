@@ -19,10 +19,11 @@ import Definitions
 import Token
 import SimpleExp
 import Control.Monad.Trans.State
+import EvalError
 
 data DebugType
-  = NoContext
-  | FullContext
+  = FullSteps
+  | StepByStep
   | NoDebug
   deriving (Show, Eq)
 
@@ -34,30 +35,34 @@ data WhileOptions
 
 data WhileConfig
   = Config
-    { debugType :: DebugType
+    { isHelp :: Bool
+    , err :: Maybe String
+    , debugType :: DebugType
     , typeCheck :: Bool
-    }
-  | HelpConfig
-  | UnknownConfig String
-  deriving (Show, Eq)
+    } deriving (Show, Eq)
 
 {-# INLINE emptyConfig #-}
 emptyConfig :: WhileConfig
-emptyConfig = Config { debugType = NoDebug, typeCheck = False }
+emptyConfig = Config 
+  { debugType = NoDebug
+  , typeCheck = False 
+  , isHelp = False
+  , err = Nothing
+  }
 
 getConfig :: [WhileOptions] -> WhileConfig
 getConfig []
   = emptyConfig
 getConfig (o : os) = case o of
   OpDebug t   -> config { debugType = t }
-  OpHelp      -> HelpConfig
-  OpUnknown e -> UnknownConfig e
+  OpHelp      -> emptyConfig { isHelp = True }
+  OpUnknown e -> emptyConfig { err = Just e }
   where
      config = getConfig os
 
 usage :: IO ()
 usage = do
-  T.putStrLn "Usage: runghc main <while_code.txt>\
+  T.putStrLn "Usage: runghc main [-h] [--debug=full|step] <while_code.txt>\
             \[<argument_name>=<value>] [...]"
   T.putStrLn "For full support, see\n\
             \https://github.com/sorrowfulT-Rex/50003-Models-of-Computation."
@@ -82,20 +87,51 @@ parseArg = parse parser' "Argument Parser: "
 -- | Run the While program by the given file name, configuration, context and
 -- code. The file name is used on error handling only.
 runWhile :: String -> WhileConfig -> Context -> Command -> IO ()
-runWhile src 
-         Config { debugType = d, typeCheck = t } 
-         context 
+runWhile src
+         Config { debugType = d, typeCheck = t }
+         context
          command = do
   case d of
-    NoContext   -> evalStarPrintS     context command
-    FullContext -> evalStarPrintFullS context command
-    NoDebug     -> case evalS' context command of
+    FullSteps  -> evalStarPrintS context command
+    StepByStep -> debugWhile     context command
+    NoDebug    -> case evalS' context command of
       Right Skip    -> putStrLn "Result: void"
-      Right (Ret e) -> putStrLn $ "Result:" ++ show e
+      Right (Ret e) -> putStrLn $ "Result: " ++ show e
       Left err      -> putStrLn $ "Error evaluating " ++ src ++ ".\n"
                     ++ show err
       _             -> error "UNREACHABLE!!"
-runWhile _ _ _ _ = error "UNREACHABLE!!"
+
+-- | Interactive debugger.
+debugWhile :: Context -> Command -> IO ()
+debugWhile ctxt com = introMsg >> putStrLn "" >> go ctxt com 0
+  where 
+    introMsg = do
+      putStrLn "Press 'x' to dump the context."
+      putStrLn "Press 's' or enter to go to the next step."
+      putStrLn "Press 'q' to quit."
+    go ctxt com i = do
+      let debugCycle = do
+              e <- getLine
+              if      e `elem` ["x", "dump"]
+              then    print ctxt >> debugCycle
+              else if e `elem` ["s", "step", ""]
+              then    case runStateT (eval1S com) ctxt of
+                Left NormalFormError -> do
+                  putStrLn "Finished!"
+                  print ctxt
+                  return ()
+                Left err             -> do
+                  putStrLn "An error occurs..."
+                  print err
+                  print ctxt
+                  return ()
+                Right (com, ctxt) -> go ctxt com (i + 1)
+              else if e `elem` ["q", "quit"]
+              then   return ()
+              else   putStrLn "Unrecognised input!" >> introMsg >> debugCycle
+      putStrLn $ "Step " ++ show i ++ ":"
+      print com
+      debugCycle
 
 main :: IO ()
 main = do
@@ -105,27 +141,30 @@ main = do
           Permute
         [ Option "h" ["help"] (NoArg OpHelp) "The Manual Page."
         , Option "d" ["debug"] (OptArg (\case
-            Just "full" -> OpDebug FullContext
+            Just "full" -> OpDebug FullSteps
+            Just "step" -> OpDebug StepByStep
             Just x      -> OpUnknown x
-            _           -> OpDebug NoContext) "DEBUG") "Debug Options"
+            _           -> OpDebug StepByStep) "DEBUG") "Debug Options"
         ] args
   if not $ null errs
   then putStr (head errs) >> help
   else do
   -- Parse option arguments
   let config = getConfig ops
-  case config of
-    HelpConfig      -> usage
-    UnknownConfig e -> do
+  if   isHelp config
+  then usage
+  else case err config of
+    Just e -> do
       putStrLn $ "Unknown parameter " ++ e ++ "!"
       help
-    _               -> if null ins
-      then help
+    _      -> 
+      if      null ins
+      then    help
       else if not $ null errs
-      then do
+      then    do
       print (head errs)
       help
-      else do
+      else    do
       -- Parse source code and arguments
       let (src : args) = ins
       case forM args parseArg of
@@ -136,4 +175,4 @@ main = do
         case parseCom $ T.unpack text of
           Left error -> print error
           -- Run the program
-          Right com  -> runWhile src config (M.fromList context) com
+          Right com  -> runWhile src config (Context $ M.fromList context) com

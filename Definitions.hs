@@ -3,6 +3,7 @@ module Definitions where
 import Data.Map ( Map )
 import Utilities ( addBrace, applyOn )
 import Data.Maybe
+import qualified Data.Map as M
 
 -- | For simplicity, I have combined the conditionals into expression.
 -- Simple Expression:
@@ -118,7 +119,10 @@ instance Show Command where
                              show' (n + 2) c
 
 -- | The "State" or "Context" of the expression.
-type Context = Map String Value
+data Context = Context {varCon :: Map String Value}
+
+instance Show Context where
+  show = ("Context: " ++). show . M.toList . varCon
 
 -- | The "result" type that encodes the type information of the value.
 data Value = VNum Integer | VBool Bool

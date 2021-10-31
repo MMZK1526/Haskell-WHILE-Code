@@ -33,7 +33,7 @@ instance Expression Command where
       Asgn x exp -> do
         exp <- evalS exp
         case exp of
-          EVal v -> put $ M.insert x v c
+          EVal v -> put $ Context $ M.insert x v $ varCon c
           _      -> lift $ Left TypeError
         return Skip
       c :+: c'   -> do
@@ -63,7 +63,7 @@ instance Expression Command where
           Ret (EVal v) -> return $ Ret $ EVal v
           com''        -> return $ com'' :+: com'
       Asgn x (EVal v)               -> do
-        put $ M.insert x v c
+        put $ Context $ M.insert x v $ varCon c
         return Skip
       Asgn x exp                    -> do
         exp' <- eval1S exp

@@ -36,7 +36,8 @@ instance Expression SimpleExp where
             (evalS e >>= lift . encodeErr TypeError .fromValMaybe . val)
     case e of
       EVal v    -> return $ EVal v
-      EVar v    -> EVal <$> lift (encodeErr (UndefVarError v) $ M.lookup v c)
+      EVar v    -> EVal <$> lift 
+        (encodeErr (UndefVarError v) $ M.lookup v $ varCon c)
       Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum
       Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum
       Prod e e' -> binOp (*)  e e' fromNumMaybe  VNum
@@ -84,7 +85,7 @@ instance Expression SimpleExp where
     c <- get
     case e of
       EVar v    -> fmap EVal $ lift $ 
-        encodeErr (UndefVarError v) $ M.lookup v c
+        encodeErr (UndefVarError v) $ M.lookup v $ varCon c
       EVal _    -> lift $ Left NormalFormError
       Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum  Plus
       Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum  Mnus

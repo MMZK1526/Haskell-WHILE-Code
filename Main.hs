@@ -103,34 +103,46 @@ runWhile src
 
 -- | Interactive debugger.
 debugWhile :: Context -> Command -> IO ()
-debugWhile ctxt com = introMsg >> putStrLn "" >> go ctxt com 0
+debugWhile ctxt com = introMsg >> putStrLn "" >> go ctxt com 0 True
   where 
-    introMsg = do
+    introMsg                 = do
       putStrLn "Press 'x' to dump the context."
-      putStrLn "Press 's' or enter to go to the next step."
+      putStrLn "Press 's' to go to the next step."
+      putStrLn "Press 'r' to go straight to the result."
+      -- putStrLn "Press enter to go to the next line."
       putStrLn "Press 'q' to quit."
-    go ctxt com i = do
+    finish ctxt com          = do
+      putStrLn "Program completed!"
+      putStrLn $ 
+        "Result: " ++ if com == Skip then "void" else show com
+      print ctxt
+    go ctxt com i isPrinting = do
       let debugCycle = do
-              e <- getLine
+              e <- if isPrinting then getLine else return "r"
               if      e `elem` ["x", "dump"]
               then    print ctxt >> debugCycle
-              else if e `elem` ["s", "step", ""]
+              else if e `elem` ["s", "step"]
               then    case runStateT (eval1S com) ctxt of
-                Left NormalFormError -> do
-                  putStrLn "Finished!"
-                  print ctxt
-                  return ()
+                Left NormalFormError -> finish ctxt com
                 Left err             -> do
                   putStrLn "An error occurs..."
                   print err
                   print ctxt
-                  return ()
-                Right (com, ctxt) -> go ctxt com (i + 1)
+                Right (com, ctxt) -> go ctxt com (i + 1) True
+              else if e `elem` ["r", "ret", "return"]
+              then    case runStateT (eval1S com) ctxt of
+                Left NormalFormError -> finish ctxt com
+                Left err             -> do
+                  putStrLn "An error occurs..."
+                  print err
+                  print ctxt
+                Right (com, ctxt) -> go ctxt com (i + 1) False
               else if e `elem` ["q", "quit"]
               then   return ()
               else   putStrLn "Unrecognised input!" >> introMsg >> debugCycle
-      putStrLn $ "Step " ++ show i ++ ":"
-      print com
+      when isPrinting $ do
+        putStrLn $ "Step " ++ show i ++ ":"
+        print com
       debugCycle
 
 main :: IO ()

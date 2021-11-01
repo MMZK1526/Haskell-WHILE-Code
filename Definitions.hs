@@ -131,7 +131,7 @@ data Value = VNum Integer | VBool Bool
 instance Show Value where
   show (VNum n)      = show n
   show (VBool True)  = "true"
-  show (VBool False)  = "false"
+  show (VBool False) = "false"
 
 {-# INLINE isNum #-}
 {-# INLINE isBool #-}

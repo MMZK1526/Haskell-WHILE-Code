@@ -99,22 +99,22 @@ main = do
   then usage
   else case err config of
     Just e  -> putStrLn ("Unknown parameter " ++ e ++ "!") >> help
-    Nothing -> 
-      if   null ins
-      then help -- No input file
-      else do
-      -- Parse source code and arguments
-      let (src : args) = ins
-      case forM args parseArg of
-        Left error    -> print error >> help -- Error parsing arguments
-        Right context -> do
-        -- Handles file-not-find error
-        handleDNE ((>> help) . print) $ do
-        text <- T.readFile src
-        case parseCom $ T.unpack text of
-          Left error -> print error -- Error parsing source code
-          -- Run the program
-          Right com  -> runWhile src config (Context $ M.fromList context) com
+    Nothing -> do
+    if   null ins
+    then help -- No input file
+    else do
+    -- Parse source code and arguments
+    let (src : args) = ins
+    case forM args parseArg of
+      Left error    -> print error >> help -- Error parsing arguments
+      Right context -> do
+      -- Handles file-not-find error
+      handleDNE ((>> help) . print) $ do
+      text <- T.readFile src
+      case parseCom $ T.unpack text of
+        Left error -> print error -- Error parsing source code
+        -- Run the program
+        Right com  -> runWhile src config (Context (M.fromList context) []) com
 
 -- | Parses a single argument given to the While code. The arguments are in the
 -- form of "v:=E" and serve as the initial context of the program.

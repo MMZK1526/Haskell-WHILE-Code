@@ -4,7 +4,7 @@ module SimpleExp where
 
 import qualified Data.Map as M
 import Control.Monad.Trans.Class ( MonadTrans(lift) )
-import Control.Monad.Trans.State ( evalStateT, get, StateT )
+import Control.Monad.Trans.State ( evalStateT, get, StateT, gets )
 import Expression
 import Definitions
 import Text.Parsec hiding (State)
@@ -71,7 +71,7 @@ instance Expression SimpleExp where
   -- stuck state.
   eval1S :: SimpleExp -> StateT Context (Either EvalError) SimpleExp
   eval1S e = do
-    let binOp op e e' fromValMaybe toVal toExp = case (e, e') of
+    let binOp op e e' fromValMaybe toVal toExp rule = case (e, e') of
           (EVal l, EVal r) -> do
             lv <- lift $ encodeErr TypeError $ fromValMaybe l
             rv <- lift $ encodeErr TypeError $ fromValMaybe r
@@ -82,26 +82,30 @@ instance Expression SimpleExp where
           (EVal v) -> EVal . toVal . op
             <$> lift (encodeErr TypeError $ fromValMaybe v)
           e        -> toExp <$> eval1S e
-    c <- get
+    c <- gets clearRules
     case e of
       EVar v    -> fmap EVal $ lift $ 
         encodeErr (UndefVarError v) $ M.lookup v $ varCon c
       EVal _    -> lift $ Left NormalFormError
-      Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum  Plus
-      Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum  Mnus
-      Prod e e' -> binOp (*)  e e' fromNumMaybe  VNum  Prod
-      ELT e e'  -> binOp (<)  e e' fromNumMaybe  VBool ELT
-      EGT e e'  -> binOp (>)  e e' fromNumMaybe  VBool EGT
-      ELE e e'  -> binOp (<=) e e' fromNumMaybe  VBool ELE
-      EGE e e'  -> binOp (>=) e e' fromNumMaybe  VBool EGE
+      Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum  Plus E_ADD
+      Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum  Mnus E_SUB 
+      Prod e e' -> binOp (*)  e e' fromNumMaybe  VNum  Prod E_MULT 
+      ELT e e'  -> binOp (<)  e e' fromNumMaybe  VBool ELT  E_LT
+      EGT e e'  -> binOp (>)  e e' fromNumMaybe  VBool EGT  E_GT
+      ELE e e'  -> binOp (<=) e e' fromNumMaybe  VBool ELE  E_LE
+      EGE e e'  -> binOp (>=) e e' fromNumMaybe  VBool EGE  E_GE
       Not e     -> unOp  not  e    fromBoolMaybe VBool Not
       ENE e e'  -> do
-        let numArgs  = evalStateT (binOp (/=) e e' fromNumMaybe VBool ENE) c
-        let boolArgs = evalStateT (binOp (/=) e e' fromBoolMaybe VBool ENE) c
+        let numArgs  = evalStateT 
+              (binOp (/=) e e' fromNumMaybe VBool ENE E_NE) c
+        let boolArgs = evalStateT 
+              (binOp (/=) e e' fromBoolMaybe VBool ENE E_NE) c
         lift $ numArgs <> boolArgs
       EEQ e e'  -> do
-        let numArgs  = evalStateT (binOp (==) e e' fromNumMaybe VBool EEQ) c
-        let boolArgs = evalStateT (binOp (==) e e' fromBoolMaybe VBool EEQ) c
+        let numArgs  = 
+              evalStateT (binOp (==) e e' fromNumMaybe VBool EEQ E_EQ) c
+        let boolArgs = 
+              evalStateT (binOp (==) e e' fromBoolMaybe VBool EEQ E_EQ) c
         lift $ numArgs <> boolArgs
       And e e'  -> case (e, e') of
           (EVal l, EVal r) -> do

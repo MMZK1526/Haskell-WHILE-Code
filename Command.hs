@@ -33,7 +33,7 @@ instance Expression Command where
       Asgn x exp -> do
         exp <- evalS exp
         case exp of
-          EVal v -> put $ Context $ M.insert x v $ varCon c
+          EVal v -> put $ updateVarCon (M.insert x v) c
           _      -> lift $ Left TypeError
         return Skip
       c :+: c'   -> do
@@ -54,7 +54,7 @@ instance Expression Command where
   -- stuck state.
   eval1S :: Command -> StateT Context (Either EvalError) Command
   eval1S lang = do
-    c <- get
+    c <- gets clearRules
     case lang of
       Skip :+: com                  -> return com
       com :+: com'                  -> do
@@ -63,7 +63,7 @@ instance Expression Command where
           Ret (EVal v) -> return $ Ret $ EVal v
           com''        -> return $ com'' :+: com'
       Asgn x (EVal v)               -> do
-        put $ Context $ M.insert x v $ varCon c
+        put $ updateVarCon (M.insert x v) c
         return Skip
       Asgn x exp                    -> do
         exp' <- eval1S exp

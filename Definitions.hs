@@ -119,7 +119,48 @@ instance Show Command where
                              show' (n + 2) c
 
 -- | The "State" or "Context" of the expression.
-data Context = Context {varCon :: Map String Value}
+data Context = Context
+  { varCon :: Map String Value -- ^ The variable context
+  , rules :: [Rule]  -- ^ The rules in this step; not used for big-step
+  }
+
+-- | The evaluating rules.
+data Rule
+  = E_VAR
+  | E_ADD
+  | E_SUB
+  | E_MULT
+  | E_LT
+  | E_GT
+  | E_LE
+  | E_GE
+  | E_EQ
+  | E_NE
+  | E_AND_TRUE
+  | E_AND_FALSE
+  | E_OR_TRUE
+  | E_OR_FALSE
+  deriving (Eq, Show)
+
+-- | The empty context.
+emptyContext :: Context
+emptyContext = Context M.empty []
+
+-- | Update the variable state of Context.
+updateVarCon :: (Map String Value -> Map String Value) -> Context -> Context
+updateVarCon f (Context vc rs) = Context (f vc) rs
+
+-- | Remove rule records from Context.
+clearRules :: Context -> Context
+clearRules (Context vc _) = Context vc []
+
+-- | Add a rule record to Context.
+applyRule :: Rule -> Context -> Context
+applyRule r (Context vc rs) = Context vc $ r : rs
+
+-- | Print everything from the Context.
+dumpContext :: Context -> String
+dumpContext ctxt = show ctxt ++ '\n' : ("Rules applied :" ++ show (rules ctxt))
 
 instance Show Context where
   show = ("Context: " ++). show . M.toList . varCon

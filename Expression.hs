@@ -22,7 +22,7 @@ class Expression e where
 
   -- | Big-Step evaluation, starting from an empty state, discarding the state.
   eval :: e -> Either EvalError e
-  eval exp = evalStateT (evalS exp) $ Context M.empty
+  eval exp = evalStateT (evalS exp) emptyContext
 
   -- | Big-Step evaluation, discarding the state.
   evalS' :: Context -> e -> Either EvalError e
@@ -31,7 +31,7 @@ class Expression e where
   -- | Return a list of Expressions, each one is one-step reduced from the
   -- previous one. Starting from an empty state, discarding the state.
   evalStar :: e -> ([e], String)
-  evalStar e = evalState (evalStarS e) $ Context M.empty
+  evalStar e = evalState (evalStarS e) emptyContext
 
   -- | Return a list of Expressions, each one is one-step reduced from the
   -- previous one.
@@ -48,7 +48,7 @@ class Expression e where
   -- | Pretty prints the result of evalStar, starting from an empty state.
   -- Only works if the expression implements 'Show'.
   evalStarPrint :: Show e => e -> IO ()
-  evalStarPrint = evalStarPrintS $ Context M.empty
+  evalStarPrint = evalStarPrintS emptyContext
 
   -- | Pretty prints the result of evalStarS. Only works if the expression
   -- implements 'Show'.

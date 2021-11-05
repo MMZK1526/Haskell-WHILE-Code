@@ -4,7 +4,7 @@ module SimpleExp where
 
 import qualified Data.Map as M
 import Control.Monad.Trans.Class ( MonadTrans(lift) )
-import Control.Monad.Trans.State ( evalStateT, get, StateT, gets )
+import Control.Monad.Trans.State
 import Expression
 import Definitions
 import Text.Parsec hiding (State)
@@ -71,13 +71,15 @@ instance Expression SimpleExp where
   -- stuck state.
   eval1S :: SimpleExp -> StateT Context (Either EvalError) SimpleExp
   eval1S e = do
-    let binOp op e e' fromValMaybe toVal toExp rule = case (e, e') of
-          (EVal l, EVal r) -> do
-            lv <- lift $ encodeErr TypeError $ fromValMaybe l
-            rv <- lift $ encodeErr TypeError $ fromValMaybe r
-            return $ EVal $ toVal $ lv `op` rv
-          (EVal l, e')     -> toExp e <$> eval1S e'
-          (e,      e')     -> flip toExp e' <$> eval1S e
+    let binOp op e e' fromValMaybe toVal toExp rule = do
+          modify' (applyRule rule) 
+          case (e, e') of
+            (EVal l, EVal r) -> do
+              lv <- lift $ encodeErr TypeError $ fromValMaybe l
+              rv <- lift $ encodeErr TypeError $ fromValMaybe r
+              return $ EVal $ toVal $ lv `op` rv
+            (EVal l, e')     -> toExp e <$> eval1S e'
+            (e,      e')     -> flip toExp e' <$> eval1S e
     let unOp op e fromValMaybe toVal toExp = case e of
           (EVal v) -> EVal . toVal . op
             <$> lift (encodeErr TypeError $ fromValMaybe v)

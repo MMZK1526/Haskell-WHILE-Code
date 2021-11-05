@@ -137,9 +137,9 @@ runWhile src
          context
          command = do
   case d of
-    FullSteps  -> evalStarPrintS context command -- Big-step
+    FullSteps  -> evalStarPrintS context command -- Small-steps
     StepByStep -> debugWhile     context command -- Interactive debugger
-    NoDebug    -> case evalS' context command of -- Small-steps
+    NoDebug    -> case evalS' context command of -- Big-step
       Right Skip    -> putStrLn "Result: void"
       Right (Ret e) -> putStrLn $ "Result: " ++ show e
       Left err      -> putStrLn $ "Error evaluating " ++ src ++ ".\n"
@@ -177,7 +177,7 @@ debugWhile ctxt com = introMsg >> putStrLn "" >> go ctxt com 0 True
               -- Get user input (when enabled) or just "r"
               e <- if isPrinting then getLine else return "r"
               if      e `elem` ["x", "dump"] -- Dump context
-              then    print ctxt >> debugCycle
+              then    putStrLn (dumpContext ctxt) >> debugCycle
               else if e `elem` ["s", "step"] -- One step forward
               then    case runStateT (eval1S com) ctxt of
                 Left NormalFormError -> finish ctxt com i

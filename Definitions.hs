@@ -140,6 +140,15 @@ data Rule
   | E_AND_FALSE
   | E_OR_TRUE
   | E_OR_FALSE
+  | E_SEQ
+  | E_SKIP
+  | E_ASSIGN
+  | E_WHILE
+  | E_IF
+  | E_IF_TRUE
+  | E_IF_FALSE
+  | E_RETURN
+  | E_NOT
   deriving (Eq, Show)
 
 -- | The empty context.

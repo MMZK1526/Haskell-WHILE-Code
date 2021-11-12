@@ -70,63 +70,78 @@ instance Expression SimpleExp where
   -- | Small-Step evaluation. Encoded with an error if either in normal form or
   -- stuck state.
   eval1S :: SimpleExp -> StateT Context (Either EvalError) SimpleExp
-  eval1S e = do
-    let binOp op e e' fromValMaybe toVal toExp rule = do
-          modify' (applyRule rule) 
-          case (e, e') of
-            (EVal l, EVal r) -> do
-              lv <- lift $ encodeErr TypeError $ fromValMaybe l
-              rv <- lift $ encodeErr TypeError $ fromValMaybe r
-              return $ EVal $ toVal $ lv `op` rv
-            (EVal l, e')     -> toExp e <$> eval1S e'
-            (e,      e')     -> flip toExp e' <$> eval1S e
-    let unOp op e fromValMaybe toVal toExp = case e of
-          (EVal v) -> EVal . toVal . op
-            <$> lift (encodeErr TypeError $ fromValMaybe v)
-          e        -> toExp <$> eval1S e
-    c <- gets clearRules
-    case e of
-      EVar v    -> fmap EVal $ lift $ 
-        encodeErr (UndefVarError v) $ M.lookup v $ varCon c
-      EVal _    -> lift $ Left NormalFormError
-      Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum  Plus E_ADD
-      Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum  Mnus E_SUB 
-      Prod e e' -> binOp (*)  e e' fromNumMaybe  VNum  Prod E_MULT 
-      ELT e e'  -> binOp (<)  e e' fromNumMaybe  VBool ELT  E_LT
-      EGT e e'  -> binOp (>)  e e' fromNumMaybe  VBool EGT  E_GT
-      ELE e e'  -> binOp (<=) e e' fromNumMaybe  VBool ELE  E_LE
-      EGE e e'  -> binOp (>=) e e' fromNumMaybe  VBool EGE  E_GE
-      Not e     -> unOp  not  e    fromBoolMaybe VBool Not
-      ENE e e'  -> do
-        let numArgs  = evalStateT 
-              (binOp (/=) e e' fromNumMaybe VBool ENE E_NE) c
-        let boolArgs = evalStateT 
-              (binOp (/=) e e' fromBoolMaybe VBool ENE E_NE) c
-        lift $ numArgs <> boolArgs
-      EEQ e e'  -> do
-        let numArgs  = 
-              evalStateT (binOp (==) e e' fromNumMaybe VBool EEQ E_EQ) c
-        let boolArgs = 
-              evalStateT (binOp (==) e e' fromBoolMaybe VBool EEQ E_EQ) c
-        lift $ numArgs <> boolArgs
-      And e e'  -> case (e, e') of
-          (EVal l, EVal r) -> do
-            lv <- lift (encodeErr TypeError $ fromBoolMaybe l)
-            if not lv
-              then return $ EVal $ VBool False
-              else EVal . VBool <$> lift 
-                (encodeErr TypeError $ fromBoolMaybe r)
-          (EVal l, e')     -> And e <$> eval1S e'
-          (e,      e')     -> flip And e' <$> eval1S e
-      Or  e e'  -> case (e, e') of
-          (EVal l, EVal r) -> do
-            lv <- lift (encodeErr TypeError $ fromBoolMaybe l)
-            if lv
-              then return $ EVal $ VBool True
-              else EVal . VBool <$> lift 
-                (encodeErr TypeError $ fromBoolMaybe r)
-          (EVal l, e')     -> Or e <$> eval1S e'
-          (e,      e')     -> flip Or e' <$> eval1S e
+  eval1S e = modify' clearRules >> go e
+    where
+      go e = do
+        let binOp op e e' fromValMaybe toVal toExp rule = do
+              case (e, e') of
+                (EVal l, EVal r) -> do
+                  modify' (applyRule rule) 
+                  lv <- lift $ encodeErr TypeError $ fromValMaybe l
+                  rv <- lift $ encodeErr TypeError $ fromValMaybe r
+                  return $ EVal $ toVal $ lv `op` rv
+                (EVal l, e')     -> do
+                  e' <- go e'
+                  modify' (applyRule rule) 
+                  return $ toExp e e'
+                (e,      e')     -> do
+                  e <- go e
+                  modify' (applyRule rule) 
+                  return $ toExp e e'
+        let unOp op e fromValMaybe toVal toExp rule = case e of
+              EVal v -> do
+                modify' (applyRule rule) 
+                EVal . toVal . op
+                  <$> lift (encodeErr TypeError $ fromValMaybe v)
+              e      -> do
+                e <- go e
+                modify' (applyRule rule) 
+                return $ toExp e
+        c <- get
+        case e of
+          EVar v    -> do
+            modify' $ applyRule E_VAR
+            fmap EVal $ lift $ 
+              encodeErr (UndefVarError v) $ M.lookup v $ varCon c
+          EVal _    -> lift $ Left NormalFormError
+          Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum  Plus E_ADD
+          Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum  Mnus E_SUB 
+          Prod e e' -> binOp (*)  e e' fromNumMaybe  VNum  Prod E_MULT 
+          ELT e e'  -> binOp (<)  e e' fromNumMaybe  VBool ELT  E_LT
+          EGT e e'  -> binOp (>)  e e' fromNumMaybe  VBool EGT  E_GT
+          ELE e e'  -> binOp (<=) e e' fromNumMaybe  VBool ELE  E_LE
+          EGE e e'  -> binOp (>=) e e' fromNumMaybe  VBool EGE  E_GE
+          Not e     -> unOp  not  e    fromBoolMaybe VBool Not  E_NOT
+          ENE e e'  -> do
+            let numArgs  = evalStateT 
+                  (binOp (/=) e e' fromNumMaybe VBool ENE E_NE) c
+            let boolArgs = evalStateT 
+                  (binOp (/=) e e' fromBoolMaybe VBool ENE E_NE) c
+            lift $ numArgs <> boolArgs
+          EEQ e e'  -> do
+            let numArgs  = 
+                  evalStateT (binOp (==) e e' fromNumMaybe VBool EEQ E_EQ) c
+            let boolArgs = 
+                  evalStateT (binOp (==) e e' fromBoolMaybe VBool EEQ E_EQ) c
+            lift $ numArgs <> boolArgs
+          And e e'  -> case (e, e') of
+              (EVal l, EVal r) -> do
+                lv <- lift (encodeErr TypeError $ fromBoolMaybe l)
+                if not lv
+                  then return $ EVal $ VBool False
+                  else EVal . VBool <$> lift 
+                    (encodeErr TypeError $ fromBoolMaybe r)
+              (EVal l, e')     -> And e <$> go e'
+              (e,      e')     -> flip And e' <$> go e
+          Or  e e'  -> case (e, e') of
+              (EVal l, EVal r) -> do
+                lv <- lift (encodeErr TypeError $ fromBoolMaybe l)
+                if lv
+                  then return $ EVal $ VBool True
+                  else EVal . VBool <$> lift 
+                    (encodeErr TypeError $ fromBoolMaybe r)
+              (EVal l, e')     -> Or e <$> go e'
+              (e,      e')     -> flip Or e' <$> go e
 
 -- Parses a SimpleExp.
 parseExp :: String -> Either ParseError SimpleExp

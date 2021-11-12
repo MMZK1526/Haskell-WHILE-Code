@@ -53,40 +53,49 @@ instance Expression Command where
   -- | Small-Step evaluation. Encoded with an error if either in normal form or
   -- stuck state.
   eval1S :: Command -> StateT Context (Either EvalError) Command
-  eval1S lang = do
-    c <- gets clearRules
-    case lang of
-      Skip :+: com                  -> return com
-      com :+: com'                  -> do
-        lang' <- eval1S com
-        case lang' of
-          Ret (EVal v) -> return $ Ret $ EVal v
-          com''        -> return $ com'' :+: com'
-      Asgn x (EVal v)               -> do
-        put $ updateVarCon (M.insert x v) c
-        return Skip
-      Asgn x exp                    -> do
-        exp' <- eval1S exp
-        return $ Asgn x exp'
-      If (EVal (VBool True)) com _  -> return com
-      If (EVal (VBool False)) _ com -> return com
-      If (EVal _) _ _               -> lift $ Left TypeError
-      If b com com'                 -> do
-        b' <- eval1S b
-        return $ If b' com com'
-      Ret exp                       -> Ret <$> eval1S exp
-      While b c                     -> return $ If b (c :+: While b c) Skip
-      _                             -> lift $ Left NormalFormError
-
-comFact :: Command
-comFact
-    = Asgn "y" (EVar "x")
-  :+: Asgn "a" 1
-  :+: While (EGT (EVar "y") 0) (
-        Asgn "a" (Prod (EVar "a") (EVar "y"))
-    :+: Asgn "y" (Mnus (EVar "y") 1)
-      )
-  :+: Ret (EVar "a")
+  eval1S lang = modify' clearRules >> go lang
+    where
+      go lang = do
+        ctxt <- gets clearRules
+        case lang of
+          Skip :+: com                  -> do
+            modify' (applyRule E_SKIP) 
+            return com
+          com :+: com'                  -> do
+            lang' <- go com
+            case lang' of
+              Ret (EVal v) -> do
+                modify' (applyRule E_SEQ) 
+                return $ Ret $ EVal v
+              com''        -> do
+                modify' (applyRule E_SEQ) 
+                return $ com'' :+: com'
+          Asgn x (EVal v)               -> do
+            put $ updateVarCon (M.insert x v) ctxt
+            modify' (applyRule E_ASSIGN)
+            return Skip
+          Asgn x exp                    -> do
+            exp' <- eval1S exp
+            modify' (applyRule E_ASSIGN)
+            return $ Asgn x exp'
+          If (EVal (VBool True)) com _  -> do
+            modify' (applyRule E_IF_TRUE)
+            return com
+          If (EVal (VBool False)) _ com -> do
+            modify' (applyRule E_IF_FALSE)
+            return com
+          If (EVal _) _ _               -> lift (Left TypeError)
+          If b com com'                 -> do
+            b' <- eval1S b
+            modify' (applyRule E_IF)
+            return $ If b' com com'
+          Ret exp                       -> do
+            modify' (applyRule E_RETURN)
+            Ret <$> eval1S exp
+          While b c                     -> do
+            modify' (applyRule E_WHILE)
+            return $ If b (c :+: While b c) Skip
+          _                             -> lift (Left NormalFormError)
 
 -- Parses a Command.
 parseCom :: String -> Either ParseError Command
@@ -118,7 +127,7 @@ comParser = seqParser 0 <* eof
               com' <- seqParser n
               return $ com :+: com'
           ) <|> return com
-    indentParser n = count n (char ' ') 
+    indentParser n = count n (char ' ')
       <?> "indentation of " ++ show n ++ " spaces!"
     whileParser n  = do
       parseReserved "while"

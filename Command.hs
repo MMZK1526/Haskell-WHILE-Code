@@ -8,7 +8,7 @@ import Control.Monad.Trans.State
 import SimpleExp
 import Expression
 import Definitions
-import Control.Monad.Trans
+import Control.Monad.Trans.Class
 import EvalError
 import Text.Parsec.String
 import Text.Parsec

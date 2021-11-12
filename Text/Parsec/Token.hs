@@ -36,10 +36,8 @@ import Data.Char ( isAlpha, toLower, toUpper, isSpace, digitToInt )
 import Data.Typeable ( Typeable )
 #endif
 import Data.List ( nub, sort )
-import Control.Monad.Identity
-import Text.Parsec.Prim
-import Text.Parsec.Char
-import Text.Parsec.Combinator
+import Data.Functor.Identity
+import Text.Parsec
 
 -----------------------------------------------------------
 -- Language Definition

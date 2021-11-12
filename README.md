@@ -8,7 +8,7 @@ Implement the key points and algorithms from the Imperial College Course Models 
 ## Introduction
 The ```While Language``` is a simple Turing-Complete language introduced in the course. I have made an interpreter in ```Haskell``` for this language.  
 
-Here I am going to introduce the syntax of the language. If you want to know how to use the interpreter straight away, go [here](#While Interpreter CLI).
+Here I am going to introduce the syntax of the language. If you want to know how to use the interpreter straight away, go [here](#while-intepreter-cli).
 
 The language is originally defined as the following in the course:
 
@@ -94,7 +94,7 @@ In this section, $n$ denotes an integer while $b$ denotes a boolean value.
 # While Intepreter CLI
 To use the CLI, we need to have ```GHC``` environment. We also need the packages ```Data.Map``` and ```Text.Parsec```.  
 
-Here is an example of running and debugging a simple [factorial function](##Example). The full documentaton can be found [here](##Documentation).  
+Here is an example of running and debugging a simple [factorial function](#Example). The full documentaton can be found [here](#Documentation).  
 
 ## Example
 

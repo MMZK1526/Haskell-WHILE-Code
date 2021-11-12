@@ -5,6 +5,7 @@ module SimpleExp where
 import qualified Data.Map as M
 import Control.Monad.Trans.Class ( MonadTrans(lift) )
 import Control.Monad.Trans.State
+import Data.Bifunctor
 import Expression
 import Definitions
 import Text.Parsec hiding (State)
@@ -117,19 +118,23 @@ instance Expression SimpleExp where
           EGE  e e' -> binOp (>=) e e' fromNumMaybe  VBool EGE  E_GE
           Not  e    -> unOp  not  e    fromBoolMaybe VBool Not  E_NOT
           ENE  e e' -> do
-            let numArgs  = evalStateT
-                  (binOp (/=) e e' fromNumMaybe VBool ENE E_NE) c
-            let boolArgs = evalStateT
-                  (binOp (/=) e e' fromBoolMaybe VBool ENE E_NE) c
-            modify' (applyRule E_NE)
-            lift $ numArgs <> boolArgs
+            let numArgs  = 
+                  runStateT (binOp (/=) e e' fromNumMaybe VBool ENE E_NE) c
+            let boolArgs = 
+                  runStateT(binOp (/=) e e' fromBoolMaybe VBool ENE E_NE) c
+            (exp, c) <- lift $ numArgs <> boolArgs
+            put c
+            modify' $ applyRule E_NE
+            return exp
           EEQ e e'  -> do
             let numArgs  =
-                  evalStateT (binOp (==) e e' fromNumMaybe VBool EEQ E_EQ) c
+                  runStateT (binOp (==) e e' fromNumMaybe VBool EEQ E_EQ) c
             let boolArgs =
-                  evalStateT (binOp (==) e e' fromBoolMaybe VBool EEQ E_EQ) c
-            modify' (applyRule E_EQ)
-            lift $ numArgs <> boolArgs
+                  runStateT (binOp (==) e e' fromBoolMaybe VBool EEQ E_EQ) c
+            (exp, c) <- lift $ numArgs <> boolArgs
+            put c
+            modify' $ applyRule E_EQ
+            return exp
           And e e'  -> case (e, e') of
               (EVal l, EVal r) -> do
                 modify' $ applyRule E_AND

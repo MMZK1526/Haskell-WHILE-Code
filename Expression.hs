@@ -58,5 +58,5 @@ class Expression e where
     forM_ (zip [0..] exps) $
       \(i, exp) -> putStrLn $ "Step " ++ show i ++ ":\n" ++ show exp ++ "\n"
     putStrLn $ if msg == show NormalFormError
-      then "Final context: " ++ show ctxt
+      then show ctxt
       else msg ++ "\nContext: " ++ show ctxt

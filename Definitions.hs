@@ -141,9 +141,10 @@ data Rule
   | E_OR_TRUE
   | E_OR_FALSE
   | E_SKIP
-  | E_ASSIGN
+  | E_ASSIGN_EXP
+  | E_ASSIGN_VAL
   | E_WHILE
-  | E_IF
+  | E_IF_EXP
   | E_IF_TRUE
   | E_IF_FALSE
   | E_RETURN

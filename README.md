@@ -4,7 +4,6 @@ Author: MMZK1526 *et ut* Yitang Chen
 Implement the key points and algorithms from the Imperial College Course Models of Computation.  
 
 # While Language
-
 ## Introduction
 The ```While Language``` is a simple Turing-Complete language introduced in the course. I have made an interpreter in ```Haskell``` for this language.  
 
@@ -97,7 +96,267 @@ To use the CLI, we need to have ```GHC``` environment. We also need the packages
 Here is an example of running and debugging a simple [factorial function](#Example). The full documentaton can be found [here](#Documentation).  
 
 ## Example
-TODO
+The most basic way of using the CLI is to first navigate to the root directory of this repo (namely the same folder as [Command.hs](Command.hs)), then run the following:  
+
+```runghc main filename [arg1=val1 arg2=var2 ...]```[^2]
+
+For example, we have a [factorial example](Examples/factorial.while) which takes a parameter ```x``` and returns the factorial of this number.  We can use the ```While``` program to calculate ```3!``` by running the following:
+
+```
+> runghc main Examples/factorial.while x=3
+Result: 6
+```
+
+We can also pass in a debug option. The most basic option is ```-d```, which would start an interactive debugger where we can go through the evaluation step by step:  
+
+```
+> runghc main -d Examples/factorial.while x=3
+Press 'x' to dump the context.
+Press 's' to go to the next step.
+Press 'r' to go straight to the result.
+Press 'q' to quit.
+
+Step 0:
+y := x
+a := 1
+while y > 0
+  a := a * y
+  y := y - 1
+a
+> s
+Step 1:
+y := 3
+a := 1
+while y > 0
+  a := a * y
+  y := y - 1
+a
+> x
+Context: [("x",3)]
+Rules applied :[E_ASSIGN_EXP,E_VAR]
+> s
+Step 2:
+[DO NOTHING]
+a := 1
+while y > 0
+  a := a * y
+  y := y - 1
+a
+> x
+Context: [("x",3),("y",3)]
+Rules applied :[E_ASSIGN_VAL]
+> r
+Program completed after 50 steps!
+Result: 6
+Context: [("a",6),("x",3),("y",0)]
+```
+
+Note that after entering ```r```, the debugger will dump the current context as well as the rules used in that particular step of calculation.  
+
+We can also dump out the entire steps with the ```--debug=full``` option:   
+
+```
+> runghc main --debug=full Examples/factorial.while x=1
+Step 0:
+y := x
+a := 1
+while y > 0
+  a := a * y
+  y := y - 1
+a
+
+Step 1:
+y := 1
+a := 1
+while y > 0
+  a := a * y
+  y := y - 1
+a
+
+Step 2:
+[DO NOTHING]
+a := 1
+while y > 0
+  a := a * y
+  y := y - 1
+a
+
+Step 3:
+a := 1
+while y > 0
+  a := a * y
+  y := y - 1
+a
+
+Step 4:
+[DO NOTHING]
+while y > 0
+  a := a * y
+  y := y - 1
+a
+
+Step 5:
+while y > 0
+  a := a * y
+  y := y - 1
+a
+
+Step 6:
+if y > 0
+  a := a * y
+  y := y - 1
+  while y > 0
+    a := a * y
+    y := y - 1
+else
+  [DO NOTHING]
+a
+
+Step 7:
+if 1 > 0
+  a := a * y
+  y := y - 1
+  while y > 0
+    a := a * y
+    y := y - 1
+else
+  [DO NOTHING]
+a
+
+Step 8:
+if true
+  a := a * y
+  y := y - 1
+  while y > 0
+    a := a * y
+    y := y - 1
+else
+  [DO NOTHING]
+a
+
+Step 9:
+a := a * y
+y := y - 1
+while y > 0
+  a := a * y
+  y := y - 1
+a
+
+Step 10:
+a := 1 * y
+y := y - 1
+while y > 0
+  a := a * y
+  y := y - 1
+a
+
+Step 11:
+a := 1 * 1
+y := y - 1
+while y > 0
+  a := a * y
+  y := y - 1
+a
+
+Step 12:
+a := 1
+y := y - 1
+while y > 0
+  a := a * y
+  y := y - 1
+a
+
+Step 13:
+[DO NOTHING]
+y := y - 1
+while y > 0
+  a := a * y
+  y := y - 1
+a
+
+Step 14:
+y := y - 1
+while y > 0
+  a := a * y
+  y := y - 1
+a
+
+Step 15:
+y := 1 - 1
+while y > 0
+  a := a * y
+  y := y - 1
+a
+
+Step 16:
+y := 0
+while y > 0
+  a := a * y
+  y := y - 1
+a
+
+Step 17:
+[DO NOTHING]
+while y > 0
+  a := a * y
+  y := y - 1
+a
+
+Step 18:
+while y > 0
+  a := a * y
+  y := y - 1
+a
+
+Step 19:
+if y > 0
+  a := a * y
+  y := y - 1
+  while y > 0
+    a := a * y
+    y := y - 1
+else
+  [DO NOTHING]
+a
+
+Step 20:
+if 0 > 0
+  a := a * y
+  y := y - 1
+  while y > 0
+    a := a * y
+    y := y - 1
+else
+  [DO NOTHING]
+a
+
+Step 21:
+if false
+  a := a * y
+  y := y - 1
+  while y > 0
+    a := a * y
+    y := y - 1
+else
+  [DO NOTHING]
+a
+
+Step 22:
+[DO NOTHING]
+a
+
+Step 23:
+a
+
+Step 24:
+1
+
+Context: [("a",1),("x",1),("y",0)]
+```
+
+There are more examples in the \Examples folder, feel free to try them out!  
 
 ## Documentation
 TODO
+
+[^2] Of course, we can always compile the file Main.hs to achieve higher efficiency. In this case, just replace ```runghc main``` with the name of the executable.  

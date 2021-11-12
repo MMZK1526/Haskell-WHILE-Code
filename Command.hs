@@ -68,11 +68,11 @@ instance Expression Command where
               com''        -> return $ com'' :+: com'
           Asgn x (EVal v)               -> do
             put $ updateVarCon (M.insert x v) ctxt
-            modify' (applyRule E_ASSIGN)
+            modify' (applyRule E_ASSIGN_VAL)
             return Skip
           Asgn x exp                    -> do
             exp' <- eval1S exp
-            modify' (applyRule E_ASSIGN)
+            modify' (applyRule E_ASSIGN_EXP)
             return $ Asgn x exp'
           If (EVal (VBool True)) com _  -> do
             modify' (applyRule E_IF_TRUE)
@@ -83,7 +83,7 @@ instance Expression Command where
           If (EVal _) _ _               -> lift (Left TypeError)
           If b com com'                 -> do
             b' <- eval1S b
-            modify' (applyRule E_IF)
+            modify' (applyRule E_IF_EXP)
             return $ If b' com com'
           Ret exp                       -> do
             modify' (applyRule E_RETURN)

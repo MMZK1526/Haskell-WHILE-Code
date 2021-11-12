@@ -33,6 +33,21 @@ E ::= true | false | not E | E or E | E and E | E < E | E = E | E > E | E != E |
 
 I have introduced a number of new operators as well as extended the range of ```n``` to $\mathbb Z$ instead of $\mathbb N$. Notably, there is a ```return``` syntax. In the original ```While```, the answer configuration is always ```<Skip, s>```, in other word, the information is solely reflected by the context[^1] ```s```. Here by adding ```return```, we can have another answer configuraton ```<return E, s>```, where ```E``` is either an integer or a boolean, so that we don't have to look into the context to see a result. As you may have anticipated, the ```return``` command terminates the entire program.  
 
+## Syntax
+The syntax of my ```While``` code resembles ```python``` in the sense that no variable declarations and semicolons are required, but with several variations.  
+
+Firstly, every instruction/expression cannot span across several lines. Therefore, it's recommended to split long expressions into several separate expressions.  
+
+Secondly, one block of indentation must be exactly 2 spaces. I am planning to relax on this restriction.  
+
+Thirdly, paranthesis are not allowed for ```if``` and ```while``` statements.  For example, we cannot right ```if(x > 2)```, only ```if x > 2```. Note also that there are no colons at the end (in the future, I will allow the use of colons, but that would be entirely optional).  
+
+The following are the allowed operators in ```While```:  
+TODO
+
+The following are the reserved words in ```While```:  
+TODO
+
 ## Rules
 In this section, $n$ denotes an integer while $b$ denotes a boolean value.
 
@@ -100,7 +115,9 @@ The most basic way of using the CLI is to first navigate to the root directory o
 
 ```runghc main filename [arg1=val1 arg2=var2 ...]``` [^2]
 
-For example, we have a [factorial example](Examples/factorial.while) which takes a parameter ```x``` and returns the factorial of this number.  We can use the ```While``` program to calculate ```3!``` by running the following:
+For example, we have a [factorial example](Examples/factorial.while) which takes a parameter ```x``` and returns the factorial of this number. For how to write your own ```While`` code, see [Syntax](#Syntax) 
+
+We can use the ```While``` program to calculate ```3!``` by running the following:
 
 ```
 > runghc main Examples/factorial.while x=3

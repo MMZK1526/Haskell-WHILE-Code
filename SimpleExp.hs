@@ -26,17 +26,17 @@ instance Expression SimpleExp where
   -- | Big-Step evaluation. Encoded with an error if cannot reach normal state.
   evalS :: SimpleExp -> StateT Context (Either EvalError) SimpleExp
   evalS e = do
-    c <- get 
+    c <- get
     let binOp op e e' fromValMaybe toVal = do
           l <- evalS e  >>= lift . encodeErr TypeError . fromValMaybe . val
           r <- evalS e' >>= lift . encodeErr TypeError . fromValMaybe . val
           return $ EVal $ toVal $ l `op` r
     let unOp op e fromValMaybe toVal
-          = EVal . toVal . op <$> 
+          = EVal . toVal . op <$>
             (evalS e >>= lift . encodeErr TypeError .fromValMaybe . val)
     case e of
       EVal v    -> return $ EVal v
-      EVar v    -> EVal <$> lift 
+      EVar v    -> EVal <$> lift
         (encodeErr (UndefVarError v) $ M.lookup v $ varCon c)
       Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum
       Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum
@@ -53,20 +53,20 @@ instance Expression SimpleExp where
         let boolArgs = evalStateT (binOp (==) e e' fromBoolMaybe VBool) c
         lift $ numArgs <> boolArgs
       ENE  e e' -> do
-        let numArgs  = evalStateT (binOp (==) e e' fromNumMaybe VBool) c
-        let boolArgs = evalStateT (binOp (==) e e' fromBoolMaybe VBool) c
+        let numArgs  = evalStateT (binOp (/=) e e' fromNumMaybe VBool) c
+        let boolArgs = evalStateT (binOp (/=) e e' fromBoolMaybe VBool) c
         lift $ numArgs <> boolArgs
       And  e e' -> do
         l <- evalS e >>= lift . encodeErr TypeError . fromBoolMaybe . val
         if not l
           then return $ EVal $ VBool False
-          else EVal . VBool <$> 
+          else EVal . VBool <$>
             (evalS e' >>= lift . encodeErr TypeError .  fromBoolMaybe . val)
       Or   e e' -> do
         l <- evalS e >>= lift . encodeErr TypeError . fromBoolMaybe . val
         if l
           then return $ EVal $ VBool True
-          else EVal . VBool <$> 
+          else EVal . VBool <$>
             (evalS e' >>= lift . encodeErr TypeError . fromBoolMaybe . val)
 
   -- | Small-Step evaluation. Encoded with an error if either in normal form or
@@ -78,36 +78,36 @@ instance Expression SimpleExp where
         let binOp op e e' fromValMaybe toVal toExp rule = do
               case (e, e') of
                 (EVal l, EVal r) -> do
-                  modify' (applyRule rule) 
+                  modify' (applyRule rule)
                   lv <- lift $ encodeErr TypeError $ fromValMaybe l
                   rv <- lift $ encodeErr TypeError $ fromValMaybe r
                   return $ EVal $ toVal $ lv `op` rv
                 (EVal l, e')     -> do
                   e' <- go e'
-                  modify' (applyRule rule) 
+                  modify' (applyRule rule)
                   return $ toExp e e'
                 (e,      e')     -> do
                   e <- go e
-                  modify' (applyRule rule) 
+                  modify' (applyRule rule)
                   return $ toExp e e'
         let unOp op e fromValMaybe toVal toExp rule = case e of
               EVal v -> do
-                modify' (applyRule rule) 
+                modify' (applyRule rule)
                 EVal . toVal . op
                   <$> lift (encodeErr TypeError $ fromValMaybe v)
               e      -> do
                 e <- go e
-                modify' (applyRule rule) 
+                modify' (applyRule rule)
                 return $ toExp e
         c <- get
         case e of
           EVar v    -> do
             modify' $ applyRule E_VAR
-            fmap EVal $ lift $ 
+            fmap EVal $ lift $
               encodeErr (UndefVarError v) $ M.lookup v $ varCon c
           EVal _    -> lift $ Left NormalFormError
           Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum  Plus E_ADD
-          Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum  Mnus E_SUB 
+          Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum  Mnus E_SUB
           Prod e e' -> binOp (*)  e e' fromNumMaybe  VNum  Prod E_MULT
           Div  e e' -> binOp div  e e' fromNumMaybe  VNum  Div  E_DIV
           Mod  e e' -> binOp mod  e e' fromNumMaybe  VNum  Mod  E_MOD
@@ -117,15 +117,15 @@ instance Expression SimpleExp where
           EGE  e e' -> binOp (>=) e e' fromNumMaybe  VBool EGE  E_GE
           Not  e    -> unOp  not  e    fromBoolMaybe VBool Not  E_NOT
           ENE  e e' -> do
-            let numArgs  = evalStateT 
+            let numArgs  = evalStateT
                   (binOp (/=) e e' fromNumMaybe VBool ENE E_NE) c
-            let boolArgs = evalStateT 
+            let boolArgs = evalStateT
                   (binOp (/=) e e' fromBoolMaybe VBool ENE E_NE) c
             lift $ numArgs <> boolArgs
           EEQ e e'  -> do
-            let numArgs  = 
+            let numArgs  =
                   evalStateT (binOp (==) e e' fromNumMaybe VBool EEQ E_EQ) c
-            let boolArgs = 
+            let boolArgs =
                   evalStateT (binOp (==) e e' fromBoolMaybe VBool EEQ E_EQ) c
             lift $ numArgs <> boolArgs
           And e e'  -> case (e, e') of
@@ -133,7 +133,7 @@ instance Expression SimpleExp where
                 lv <- lift (encodeErr TypeError $ fromBoolMaybe l)
                 if not lv
                   then return $ EVal $ VBool False
-                  else EVal . VBool <$> lift 
+                  else EVal . VBool <$> lift
                     (encodeErr TypeError $ fromBoolMaybe r)
               (EVal l, e')     -> And e <$> go e'
               (e,      e')     -> flip And e' <$> go e
@@ -142,7 +142,7 @@ instance Expression SimpleExp where
                 lv <- lift (encodeErr TypeError $ fromBoolMaybe l)
                 if lv
                   then return $ EVal $ VBool True
-                  else EVal . VBool <$> lift 
+                  else EVal . VBool <$> lift
                     (encodeErr TypeError $ fromBoolMaybe r)
               (EVal l, e')     -> Or e <$> go e'
               (e,      e')     -> flip Or e' <$> go e
@@ -155,7 +155,7 @@ parseExp = parse expParser "Simple Expression Parser: "
 expParser :: Parser SimpleExp
 expParser = eatWSP >> expParser' <* eof
 
--- | The parser for SimpleExp (no indentation allowed, ingore unparseable final 
+-- | The parser for SimpleExp (no indentation allowed, ingore unparseable final
 -- parts).
 expParser' :: Parser SimpleExp
 expParser' = buildExpressionParser expTable expTerm
@@ -168,7 +168,7 @@ expParser' = buildExpressionParser expTable expTerm
       <|> EVal <$> (parseReserved "false" >> return (VBool False))
     expTable =
       [ [ Prefix (parseReservedOp "!" >> return Not) ]
-      , [ Infix (parseReservedOp "*" >> return Prod) AssocLeft 
+      , [ Infix (parseReservedOp "*" >> return Prod) AssocLeft
         , Infix (parseReservedOp "/" >> return Div ) AssocLeft
         , Infix (parseReservedOp "%" >> return Mod ) AssocLeft
         ]

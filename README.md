@@ -4,10 +4,11 @@ Author: MMZK1526 *et ut* Yitang Chen
 Implement the key points and algorithms from the Imperial College Course Models of Computation.  
 
 # While Language
+
 ## Introduction
 The ```While Language``` is a simple Turing-Complete language introduced in the course. I have made an interpreter in ```Haskell``` for this language.  
 
-Here I am going to introduce the syntax of the language. If you want to know how to use the interpreter straight away, go [here]() (which turns out does not exist yet cuz my implementation isn't finished haha).
+Here I am going to introduce the syntax of the language. If you want to know how to use the interpreter straight away, go [here](#While Interpreter CLI).
 
 The language is originally defined as the following in the course:
 
@@ -89,3 +90,12 @@ In this section, $n$ denotes an integer while $b$ denotes a boolean value.
 </br >
 
 [^1]: In the course, the partial function that records the variables are called "state", but here we use the term "context" to differentiate it from the ```State``` Monad that is widely used in my implementation.  
+
+# While Intepreter CLI
+To use the CLI, we need to have ```GHC``` environment. We also need the packages ```Data.Map``` and ```Text.Parsec```.  
+
+Here is an example of running and debugging a simple [factorial function](##Example). The full documentaton can be found [here](##Documentation).  
+
+## Example
+
+## Documentation

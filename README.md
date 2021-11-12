@@ -174,7 +174,7 @@ a := 1
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 > s
 Step 1:
 y := 3
@@ -182,7 +182,7 @@ a := 1
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 > x
 Context: [("x",3)]
 Rules applied :[E_ASSIGN_EXP,E_VAR]
@@ -193,7 +193,7 @@ a := 1
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 > x
 Context: [("x",3),("y",3)]
 Rules applied :[E_ASSIGN_VAL]
@@ -215,7 +215,7 @@ a := 1
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 
 Step 1:
 y := 1
@@ -223,7 +223,7 @@ a := 1
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 
 Step 2:
 [DO NOTHING]
@@ -231,27 +231,27 @@ a := 1
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 
 Step 3:
 a := 1
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 
 Step 4:
 [DO NOTHING]
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 
 Step 5:
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 
 Step 6:
 if y > 0
@@ -262,7 +262,7 @@ if y > 0
     y := y - 1
 else
   [DO NOTHING]
-a
+return a
 
 Step 7:
 if 1 > 0
@@ -273,7 +273,7 @@ if 1 > 0
     y := y - 1
 else
   [DO NOTHING]
-a
+return a
 
 Step 8:
 if true
@@ -284,7 +284,7 @@ if true
     y := y - 1
 else
   [DO NOTHING]
-a
+return a
 
 Step 9:
 a := a * y
@@ -292,7 +292,7 @@ y := y - 1
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 
 Step 10:
 a := 1 * y
@@ -300,7 +300,7 @@ y := y - 1
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 
 Step 11:
 a := 1 * 1
@@ -308,7 +308,7 @@ y := y - 1
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 
 Step 12:
 a := 1
@@ -316,7 +316,7 @@ y := y - 1
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 
 Step 13:
 [DO NOTHING]
@@ -324,41 +324,41 @@ y := y - 1
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 
 Step 14:
 y := y - 1
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 
 Step 15:
 y := 1 - 1
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 
 Step 16:
 y := 0
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 
 Step 17:
 [DO NOTHING]
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 
 Step 18:
 while y > 0
   a := a * y
   y := y - 1
-a
+return a
 
 Step 19:
 if y > 0
@@ -369,7 +369,7 @@ if y > 0
     y := y - 1
 else
   [DO NOTHING]
-a
+return a
 
 Step 20:
 if 0 > 0
@@ -380,7 +380,7 @@ if 0 > 0
     y := y - 1
 else
   [DO NOTHING]
-a
+return a
 
 Step 21:
 if false
@@ -391,17 +391,17 @@ if false
     y := y - 1
 else
   [DO NOTHING]
-a
+return a
 
 Step 22:
 [DO NOTHING]
-a
+return a
 
 Step 23:
-a
+return a
 
 Step 24:
-1
+return 1
 
 Context: [("a",1),("x",1),("y",0)]
 ```

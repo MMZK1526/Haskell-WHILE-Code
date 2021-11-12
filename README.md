@@ -98,7 +98,7 @@ Here is an example of running and debugging a simple [factorial function](#Examp
 ## Example
 The most basic way of using the CLI is to first navigate to the root directory of this repo (namely the same folder as [Command.hs](Command.hs)), then run the following:  
 
-```runghc main filename [arg1=val1 arg2=var2 ...]```[^2]
+```runghc main filename [arg1=val1 arg2=var2 ...]``` [^2]
 
 For example, we have a [factorial example](Examples/factorial.while) which takes a parameter ```x``` and returns the factorial of this number.  We can use the ```While``` program to calculate ```3!``` by running the following:
 
@@ -359,4 +359,4 @@ There are more examples in the \Examples folder, feel free to try them out!
 ## Documentation
 TODO
 
-[^2] Of course, we can always compile the file Main.hs to achieve higher efficiency. In this case, just replace ```runghc main``` with the name of the executable.  
+[^2]: Of course, we can always compile the file Main.hs to achieve higher efficiency. In this case, just replace ```runghc main``` with the name of the executable.  

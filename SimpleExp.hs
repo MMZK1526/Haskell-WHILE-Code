@@ -121,31 +121,48 @@ instance Expression SimpleExp where
                   (binOp (/=) e e' fromNumMaybe VBool ENE E_NE) c
             let boolArgs = evalStateT
                   (binOp (/=) e e' fromBoolMaybe VBool ENE E_NE) c
+            modify' (applyRule E_NE)
             lift $ numArgs <> boolArgs
           EEQ e e'  -> do
             let numArgs  =
                   evalStateT (binOp (==) e e' fromNumMaybe VBool EEQ E_EQ) c
             let boolArgs =
                   evalStateT (binOp (==) e e' fromBoolMaybe VBool EEQ E_EQ) c
+            modify' (applyRule E_EQ)
             lift $ numArgs <> boolArgs
           And e e'  -> case (e, e') of
               (EVal l, EVal r) -> do
+                modify' $ applyRule E_AND
                 lv <- lift (encodeErr TypeError $ fromBoolMaybe l)
                 if not lv
-                  then return $ EVal $ VBool False
+                  then do 
+                    return $ EVal $ VBool False
                   else EVal . VBool <$> lift
                     (encodeErr TypeError $ fromBoolMaybe r)
-              (EVal l, e')     -> And e <$> go e'
-              (e,      e')     -> flip And e' <$> go e
+              (EVal l, e')     -> do
+                e' <- go e'
+                modify' $ applyRule E_AND
+                return $ And e e'
+              (e,      e')     -> do
+                e <- go e
+                modify' $ applyRule E_AND
+                return $ And e e'
           Or  e e'  -> case (e, e') of
               (EVal l, EVal r) -> do
+                modify' $ applyRule E_OR
                 lv <- lift (encodeErr TypeError $ fromBoolMaybe l)
                 if lv
                   then return $ EVal $ VBool True
                   else EVal . VBool <$> lift
                     (encodeErr TypeError $ fromBoolMaybe r)
-              (EVal l, e')     -> Or e <$> go e'
-              (e,      e')     -> flip Or e' <$> go e
+              (EVal l, e')     -> do
+                e' <- go e'
+                modify' $ applyRule E_OR
+                return $ Or e e'
+              (e,      e')     -> do
+                e <- go e
+                modify' $ applyRule E_OR
+                return $ Or e e'
 
 -- Parses a SimpleExp.
 parseExp :: String -> Either ParseError SimpleExp

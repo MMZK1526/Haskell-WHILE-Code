@@ -143,10 +143,8 @@ data Rule
   | E_GE
   | E_EQ
   | E_NE
-  | E_AND_TRUE
-  | E_AND_FALSE
-  | E_OR_TRUE
-  | E_OR_FALSE
+  | E_AND
+  | E_OR
   | E_SKIP
   | E_ASSIGN_EXP
   | E_ASSIGN_VAL

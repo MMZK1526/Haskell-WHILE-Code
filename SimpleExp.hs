@@ -124,7 +124,6 @@ instance Expression SimpleExp where
                   runStateT(binOp (/=) e e' fromBoolMaybe VBool ENE E_NE) c
             (exp, c) <- lift $ numArgs <> boolArgs
             put c
-            modify' $ applyRule E_NE
             return exp
           EEQ e e'  -> do
             let numArgs  =
@@ -133,7 +132,6 @@ instance Expression SimpleExp where
                   runStateT (binOp (==) e e' fromBoolMaybe VBool EEQ E_EQ) c
             (exp, c) <- lift $ numArgs <> boolArgs
             put c
-            modify' $ applyRule E_EQ
             return exp
           And e e'  -> case (e, e') of
               (EVal l, EVal r) -> do

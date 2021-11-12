@@ -108,6 +108,15 @@ In this section, $n$ denotes an integer while $b$ denotes a boolean value.
 # While Intepreter CLI
 To use the CLI, we need to have ```GHC``` environment. We also need the packages ```Data.Map``` and ```Text.Parsec```.  
 
+To install these packages using ```cabal``` (assuming you already have ```GHC```), run the following:
+
+```
+cabal install --lib containers
+cabal install --lib parsec
+```
+
+Since I do not use ```stack```, I'm not sure how to install them with that. It should be similar though :)  
+
 Here is an example of running and debugging a simple [factorial function](#Example). The full documentaton can be found [here](#Documentation).  
 
 ## Example

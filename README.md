@@ -97,5 +97,7 @@ To use the CLI, we need to have ```GHC``` environment. We also need the packages
 Here is an example of running and debugging a simple [factorial function](#Example). The full documentaton can be found [here](#Documentation).  
 
 ## Example
+TODO
 
 ## Documentation
+TODO

@@ -115,7 +115,7 @@ The most basic way of using the CLI is to first navigate to the root directory o
 
 ```runghc main filename [arg1=val1 arg2=var2 ...]``` [^2]
 
-For example, we have a [factorial example](Examples/factorial.while) which takes a parameter ```x``` and returns the factorial of this number. For how to write your own ```While`` code, see [Syntax](#Syntax) 
+For example, we have a [factorial example](Examples/factorial.while) which takes a parameter ```x``` and returns the factorial of this number. For how to write your own ```While`` code, see [Syntax](#Syntax).  
 
 We can use the ```While``` program to calculate ```3!``` by running the following:
 

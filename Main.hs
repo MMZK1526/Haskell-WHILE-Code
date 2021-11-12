@@ -162,7 +162,7 @@ debugWhile ctxt com = introMsg >> putStrLn "" >> go ctxt com 0 True
     finish ctxt com i        = do
       putStrLn $ "Program completed after " ++ show i ++ " steps!"
       putStrLn $ 
-        "Result: " ++ if com == Skip then "void" else show com
+        "Result: " ++ if com == Skip then "void" else drop 7 $ show com
       print ctxt
 
     -- Called when an error is encountered.

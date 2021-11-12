@@ -28,7 +28,7 @@ I have modified it so that ```E``` and ```B``` are combined, but the types still
 
 ```
 C ::= C; C | v := E | if E then C else C | while E do C | Skip | return E
-E ::= true | false | not E | E or E | E and E | E < E | E = E | E > E | E != E | E <= E | E >= E | n | v | E + E | E * E | E - E
+E ::= true | false | not E | E or E | E and E | E < E | E = E | E > E | E != E | E <= E | E >= E | n | v | E + E | E * E | E - E | E / E | E % E
 ```
 
 I have introduced a number of new operators as well as extended the range of ```n``` to $\mathbb Z$ instead of $\mathbb N$. Notably, there is a ```return``` syntax. In the original ```While```, the answer configuration is always ```<Skip, s>```, in other word, the information is solely reflected by the context[^1] ```s```. Here by adding ```return```, we can have another answer configuraton ```<return E, s>```, where ```E``` is either an integer or a boolean, so that we don't have to look into the context to see a result. As you may have anticipated, the ```return``` command terminates the entire program.  
@@ -379,6 +379,8 @@ Step 24:
 
 Context: [("a",1),("x",1),("y",0)]
 ```
+
+Note that this option does not dump the context after each step.  
 
 There are more examples in the \Examples folder, feel free to try them out!  
 

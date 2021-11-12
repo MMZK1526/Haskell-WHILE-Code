@@ -41,6 +41,8 @@ instance Expression SimpleExp where
       Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum
       Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum
       Prod e e' -> binOp (*)  e e' fromNumMaybe  VNum
+      Div  e e' -> binOp div  e e' fromNumMaybe  VNum
+      Mod  e e' -> binOp mod  e e' fromNumMaybe  VNum
       ELT  e e' -> binOp (<)  e e' fromNumMaybe  VBool
       EGT  e e' -> binOp (>)  e e' fromNumMaybe  VBool
       ELE  e e' -> binOp (<=) e e' fromNumMaybe  VBool
@@ -106,13 +108,15 @@ instance Expression SimpleExp where
           EVal _    -> lift $ Left NormalFormError
           Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum  Plus E_ADD
           Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum  Mnus E_SUB 
-          Prod e e' -> binOp (*)  e e' fromNumMaybe  VNum  Prod E_MULT 
-          ELT e e'  -> binOp (<)  e e' fromNumMaybe  VBool ELT  E_LT
-          EGT e e'  -> binOp (>)  e e' fromNumMaybe  VBool EGT  E_GT
-          ELE e e'  -> binOp (<=) e e' fromNumMaybe  VBool ELE  E_LE
-          EGE e e'  -> binOp (>=) e e' fromNumMaybe  VBool EGE  E_GE
-          Not e     -> unOp  not  e    fromBoolMaybe VBool Not  E_NOT
-          ENE e e'  -> do
+          Prod e e' -> binOp (*)  e e' fromNumMaybe  VNum  Prod E_MULT
+          Div  e e' -> binOp div  e e' fromNumMaybe  VNum  Div  E_DIV
+          Mod  e e' -> binOp mod  e e' fromNumMaybe  VNum  Mod  E_MOD
+          ELT  e e' -> binOp (<)  e e' fromNumMaybe  VBool ELT  E_LT
+          EGT  e e' -> binOp (>)  e e' fromNumMaybe  VBool EGT  E_GT
+          ELE  e e' -> binOp (<=) e e' fromNumMaybe  VBool ELE  E_LE
+          EGE  e e' -> binOp (>=) e e' fromNumMaybe  VBool EGE  E_GE
+          Not  e    -> unOp  not  e    fromBoolMaybe VBool Not  E_NOT
+          ENE  e e' -> do
             let numArgs  = evalStateT 
                   (binOp (/=) e e' fromNumMaybe VBool ENE E_NE) c
             let boolArgs = evalStateT 
@@ -164,7 +168,10 @@ expParser' = buildExpressionParser expTable expTerm
       <|> EVal <$> (parseReserved "false" >> return (VBool False))
     expTable =
       [ [ Prefix (parseReservedOp "!" >> return Not) ]
-      , [ Infix (parseReservedOp "*" >> return Prod) AssocLeft ]
+      , [ Infix (parseReservedOp "*" >> return Prod) AssocLeft 
+        , Infix (parseReservedOp "/" >> return Div ) AssocLeft
+        , Infix (parseReservedOp "%" >> return Mod ) AssocLeft
+        ]
       , [ Infix (parseReservedOp "+" >> return Plus) AssocLeft
         , Infix (parseReservedOp "-" >> return Mnus) AssocLeft
         ]

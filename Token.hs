@@ -23,7 +23,7 @@ TokenParser
     , opLetter = oneOf ""
     , reservedOpNames
     = [ "+", "-", "*", "<=", ">=", "==", "!=", "<", ">", "&", "|", "!", ":=,"
-      , "&&", "||"
+      , "&&", "||", "/", "%"
       ]
     , reservedNames = ["true", "false", "if", "else", "while"]
     , commentStart = ""

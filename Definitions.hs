@@ -8,13 +8,16 @@ import qualified Data.Map as M
 -- | For simplicity, I have combined the conditionals into expression.
 -- Simple Expression:
 -- E ::= v | n | E + E | E - E | E * E | "true" | "false" | "not" E | E "and" E
--- | E "or" E  | E < E | E = E | E > E | E <= E | E != E | E >= E
+-- | E "or" E  | E < E | E = E | E > E | E <= E | E != E | E >= E | E / E
+-- | E % E
 data SimpleExp
   = EVar { var  :: String }
   | EVal { val  :: Value } -- Number or Boolean
   | Plus { exp1 :: SimpleExp, exp2 :: SimpleExp }
   | Mnus { exp1 :: SimpleExp, exp2 :: SimpleExp }
   | Prod { exp1 :: SimpleExp, exp2 :: SimpleExp }
+  | Div  { exp1 :: SimpleExp, exp2 :: SimpleExp }
+  | Mod  { exp1 :: SimpleExp, exp2 :: SimpleExp }
   | ELT  { exp1 :: SimpleExp, exp2 :: SimpleExp }
   | EGT  { exp1 :: SimpleExp, exp2 :: SimpleExp }
   | EEQ  { exp1 :: SimpleExp, exp2 :: SimpleExp }
@@ -32,6 +35,8 @@ getPrec Not  {} = 13
 getPrec Prod {} = 12
 getPrec Plus {} = 11
 getPrec Mnus {} = 11
+getPrec Div  {} = 11
+getPrec Mod  {} = 11
 getPrec ELT  {} = 9
 getPrec EGT  {} = 9
 getPrec ELE  {} = 9
@@ -47,6 +52,8 @@ getOpSymbol :: SimpleExp -> String
 getOpSymbol Prod {} = " * "
 getOpSymbol Plus {} = " + "
 getOpSymbol Mnus {} = " - "
+getOpSymbol Div  {} = " / "
+getOpSymbol Mod  {} = " % "
 getOpSymbol ELT  {} = " < "
 getOpSymbol EGT  {} = " > "
 getOpSymbol ELE  {} = " <= "
@@ -149,6 +156,8 @@ data Rule
   | E_IF_FALSE
   | E_RETURN
   | E_NOT
+  | E_DIV
+  | E_MOD
   deriving (Eq, Show)
 
 -- | The empty context.

@@ -40,7 +40,7 @@ Firstly, every instruction/expression cannot span across several lines. Therefor
 
 Secondly, one block of indentation must be exactly 2 spaces. I am planning to relax on this restriction.  
 
-Thirdly, paranthesis are not allowed for ```if``` and ```while``` statements.  For example, we cannot right ```if(x > 2)```, only ```if x > 2```. Note also that there are no colons at the end (in the future, I will allow the use of colons, but that would be entirely optional).  
+Thirdly, paranthesis are not allowed for ```if``` and ```while``` statements.  For example, we cannot write ```if(x > 2)```, only ```if x > 2```. We can add colons at the end (as in ```python```), but that is entirely optional.  
 
 The following are the allowed operators in ```While```:  
 TODO

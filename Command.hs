@@ -128,6 +128,7 @@ comParser = seqParser 0 <* eof
     whileParser n  = do
       parseReserved "while"
       exp <- expParser'
+      parseReservedOp ":" <|> return ()
       char '\n'
       indentParser (n + 2)
       com <- seqParser (n + 2)
@@ -135,12 +136,14 @@ comParser = seqParser 0 <* eof
     ifParser n     = do
       parseReserved "if"
       exp  <- expParser'
+      parseReservedOp ":" <|> return ()
       char '\n'
       indentParser (n + 2)
       com  <- seqParser (n + 2)
       char '\n'
       indentParser n
       parseReserved "else"
+      parseReservedOp ":" <|> return ()
       char '\n'
       indentParser (n + 2)
       com' <- seqParser (n + 2)

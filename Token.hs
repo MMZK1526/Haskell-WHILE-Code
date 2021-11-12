@@ -5,6 +5,7 @@ module Token where
 
 import Text.Parsec
 import Text.Parsec.Token
+
 parseParens :: Stream s m Char => ParsecT s u m a -> ParsecT s u m a
 parseIdentifier :: Stream s m Char => ParsecT s u m String
 parseReservedOp :: Stream s m Char => String -> ParsecT s u m ()
@@ -23,7 +24,7 @@ TokenParser
     , opLetter = oneOf ""
     , reservedOpNames
     = [ "+", "-", "*", "<=", ">=", "==", "!=", "<", ">", "&", "|", "!", ":=,"
-      , "&&", "||", "/", "%"
+      , "&&", "||", "/", "%", ":"
       ]
     , reservedNames = ["true", "false", "if", "else", "while"]
     , commentStart = ""

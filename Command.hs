@@ -64,12 +64,8 @@ instance Expression Command where
           com :+: com'                  -> do
             lang' <- go com
             case lang' of
-              Ret (EVal v) -> do
-                modify' (applyRule E_SEQ) 
-                return $ Ret $ EVal v
-              com''        -> do
-                modify' (applyRule E_SEQ) 
-                return $ com'' :+: com'
+              Ret (EVal v) -> return $ Ret $ EVal v
+              com''        -> return $ com'' :+: com'
           Asgn x (EVal v)               -> do
             put $ updateVarCon (M.insert x v) ctxt
             modify' (applyRule E_ASSIGN)

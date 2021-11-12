@@ -140,7 +140,6 @@ data Rule
   | E_AND_FALSE
   | E_OR_TRUE
   | E_OR_FALSE
-  | E_SEQ
   | E_SKIP
   | E_ASSIGN
   | E_WHILE

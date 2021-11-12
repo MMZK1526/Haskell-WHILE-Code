@@ -43,7 +43,24 @@ Secondly, one block of indentation must be exactly 2 spaces. I am planning to re
 Thirdly, paranthesis are not allowed for ```if``` and ```while``` statements.  For example, we cannot write ```if(x > 2)```, only ```if x > 2```. We can add colons at the end (as in ```python```), but that is entirely optional.  
 
 The following are the allowed operators in ```While```:  
-TODO
+| Symbol | Meaning | Note |
+|--------|---------|------|
+|   `+`    |  Plus   |      |
+|   `-`    |  Minus  |      |
+|   `*`    | Multiply |     |
+|   `/`    | Divide  | rounded down|
+|   `%`    |   Mod   |      |
+|  `:=`    | Assignment | similar to ```=``` in most languages |
+|`<`| less than |we don't allow inequalities between boolean values|
+|`>`|greater than|we don't allow inequalities between boolean values|
+|`<=`|less than or equal to|we don't allow inequalities between boolean values|
+|`>=`|greater than or equal to|we don't allow inequalities between boolean values|
+|`==`|equal to|can also be written as `=`|
+|`|=`|not equal to||
+|`&&`|and|can also be written as `&`|
+|`||`|or|can also be written as `|`|
+|`!`|not||
+|`:`||optional ending of a `if`, `else` or `while` statement|
 
 The following are the reserved words in ```While```:  
 TODO

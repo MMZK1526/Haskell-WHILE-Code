@@ -26,7 +26,7 @@ TokenParser
     = [ "+", "-", "*", "<=", ">=", "==", "!=", "<", ">", "&", "|", "!", ":=,"
       , "&&", "||", "/", "%", ":"
       ]
-    , reservedNames = ["true", "false", "if", "else", "while"]
+    , reservedNames = ["true", "false", "if", "else", "while", "return"]
     , commentStart = ""
     , commentEnd = ""
     , commentLine = ""

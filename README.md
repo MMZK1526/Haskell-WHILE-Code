@@ -27,7 +27,7 @@ E ::= n | v | E + E | E * E | ...
 I have modified it so that ```E``` and ```B``` are combined, but the types still matter, *i.e.* ```false + 3``` results in a type error:  
 
 ```
-C ::= C; C | v := E | if E then C else C | while E do C | Skip | return E
+C ::= C; C | v := E | if E then C else C | while E do C | Skip | return [E]
 E ::= true | false | not E | E or E | E and E | E < E | E = E | E > E | E != E | E <= E | E >= E | n | v | E + E | E * E | E - E | E / E | E % E
 ```
 
@@ -63,7 +63,16 @@ The following are the allowed operators in ```While```:
 |`:`||optional ending of a `if`, `else` or `while` statement|
 
 The following are the reserved words in ```While```:  
-TODO
+| Word | Meaning | Note |
+|------|---------|------|
+|`true`|  Boolean true |      |
+|`false`|Boolean false||
+|`if`|if statement|an `if` statement must have an `else`|
+|`else`|the other branch of `if`|we don't currently support `elif`|
+|`while`|while statement||
+|`return`|terminate the program and returns value|if returning a value, the keyword can be omitted|
+
+The body of a control flow can be empty, which is denoted by an empty line.  
 
 ## Rules
 In this section, $n$ denotes an integer while $b$ denotes a boolean value.

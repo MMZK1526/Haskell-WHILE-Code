@@ -4,6 +4,7 @@
 module Command where
 
 import qualified Data.Map as M
+import Control.Monad
 import Control.Monad.Trans.State
 import SimpleExp
 import Expression
@@ -29,6 +30,7 @@ instance Expression Command where
     c <- get
     case lang of
       Ret exp    -> Ret <$> evalS exp
+      RetVoid    -> return Skip
       Skip       -> return Skip
       Asgn x exp -> do
         exp <- evalS exp
@@ -58,17 +60,21 @@ instance Expression Command where
       go lang = do
         ctxt <- gets clearRules
         case lang of
+          RetVoid :+: com               -> do
+            modify' $ applyRule E_RETURN
+            return Skip
+          Ret (EVal v) :+: com          -> do
+            modify' $ applyRule E_RETURN
+            return (Ret $ EVal v)
           Skip :+: com                  -> do
-            modify' (applyRule E_SKIP) 
+            modify' (applyRule E_SKIP)
             return com
           com :+: com'                  -> do
-            lang' <- go com
-            case lang' of
-              Ret (EVal v) -> return $ Ret $ EVal v
-              com''        -> return $ com'' :+: com'
+            com <- go com
+            return $ com :+: com'
           Asgn x (EVal v)               -> do
             put $ updateVarCon (M.insert x v) ctxt
-            modify' (applyRule E_ASSIGN_VAL)
+            modify' $ applyRule E_ASSIGN_VAL
             return Skip
           Asgn x exp                    -> do
             exp' <- eval1S exp
@@ -105,17 +111,21 @@ comParser = seqParser 0 <* eof
           try assignParser
       <|> whileParser n
       <|> ifParser n
-      <|> returnParser
+      <|> try returnValParser
+      <|> returnVoidParser
       <|> skipParser
-    skipParser     = eatWSP >> return Skip
-    returnParser   = do
-      parseReserved "return" <|> return ()
+    skipParser       = eatWSP >> return Skip
+    returnValParser  = do
+      parseReserved "return" <|> void eatWSP
       Ret <$> expParser'
-    assignParser   = do
+    returnVoidParser = do
+      parseReserved "return" 
+      return RetVoid
+    assignParser     = do
       v   <- parseIdentifier
       parseReservedOp ":="
       Asgn v <$> expParser'
-    seqParser n    = do
+    seqParser n      = do
       com <- blockParser n
       (eof >> return com) <|> try (char '\n' >> eof >> return com) <|> do
       try (do char '\n'
@@ -123,9 +133,9 @@ comParser = seqParser 0 <* eof
               com' <- seqParser n
               return $ com :+: com'
           ) <|> return com
-    indentParser n = count n (char ' ')
+    indentParser n   = count n (char ' ')
       <?> "indentation of " ++ show n ++ " spaces!"
-    whileParser n  = do
+    whileParser n    = do
       parseReserved "while"
       exp <- expParser'
       parseReservedOp ":" <|> return ()
@@ -133,7 +143,7 @@ comParser = seqParser 0 <* eof
       indentParser (n + 2)
       com <- seqParser (n + 2)
       return $ While exp com
-    ifParser n     = do
+    ifParser n       = do
       parseReserved "if"
       exp  <- expParser'
       parseReservedOp ":" <|> return ()

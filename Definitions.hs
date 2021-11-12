@@ -107,6 +107,7 @@ data Command
   | Command :+: Command
   | Skip
   | Ret SimpleExp
+  | RetVoid
   | If SimpleExp Command Command
   | While SimpleExp Command
   deriving Eq
@@ -118,12 +119,13 @@ instance Show Command where
       show' n (Asgn v exp) = replicate n ' ' ++ v ++ " := " ++ show exp
       show' n (c :+: c')   = show' n c ++ "\n" ++ show' n c'
       show' n Skip         = replicate n ' ' ++ "[DO NOTHING]"
-      show' n (Ret exp)    = replicate n ' ' ++ show exp
+      show' n (Ret exp)    = replicate n ' ' ++ "return " ++ show exp
       show' n (If b c c')  = replicate n ' ' ++ "if " ++ show b ++ "\n" ++
                              show' (n + 2) c ++ "\n" ++
                              replicate n ' ' ++ "else\n" ++ show' (n + 2) c'
       show' n (While b c)  = replicate n ' ' ++ "while " ++ show b ++ "\n" ++
                              show' (n + 2) c
+      show' n RetVoid      = replicate n ' ' ++ "return"
 
 -- | The "State" or "Context" of the expression.
 data Context = Context

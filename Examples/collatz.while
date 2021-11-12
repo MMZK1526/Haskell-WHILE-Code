@@ -1,13 +1,13 @@
 y := x
-if y < 1
-  return -1
-else
+if y < 1:
+  -1
+else:
   c := 0
-  while y != 1
+  while y != 1:
     isEven := y % 2 == 0
-    if isEven
+    if isEven:
       y := y / 2
-    else
+    else:
       y := 3 * y + 1
     c := c + 1
-  return c
+  c

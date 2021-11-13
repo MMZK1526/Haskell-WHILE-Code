@@ -56,7 +56,7 @@ The following are the allowed operators in ```While```:
 |`<=`|less than or equal to|we don't allow inequalities between boolean values|
 |`>=`|greater than or equal to|we don't allow inequalities between boolean values|
 |`==`|equal to|can also be written as `=`|
-|`|=`|not equal to||
+|`!=`|not equal to||
 |`&&`|and|can also be written as `&`|
 |`||`|or|can also be written as `|`|
 |`!`|not||

@@ -42,6 +42,8 @@ Secondly, one block of indentation must be exactly 2 spaces. I am planning to re
 
 Thirdly, paranthesis are not allowed for ```if``` and ```while``` statements.  For example, we cannot write ```if(x > 2)```, only ```if x > 2```. We can add colons at the end (as in ```python```), but that is entirely optional.  
 
+In ```While```, line comments start with ```:)```. There are no block comments.  
+
 The following are the allowed operators in ```While```:  
 | Symbol | Meaning | Note |
 |--------|---------|------|
@@ -70,11 +72,12 @@ The following are the reserved words in ```While```:
 |`true`|  Boolean true |      |
 |`false`|Boolean false||
 |`if`|if statement||
-|`else`|the (optional) other branch of `if`|we don't currently support `elif`|
+|`else`|the (optional) other branch of `if`||
+|`elif`|similar to `else if`|without this, nested if will be a pain|
 |`while`|while statement||
 |`return`|terminate the program and returns value|if returning a value, the keyword can be omitted|
 
-The body of a control flow can be empty, which is denoted by an empty line.  
+The body of a control flow can be empty, which is denoted by an empty line (or a comment).  
 
 ## Rules
 In this section, $n$ denotes an integer while $b$ denotes a boolean value.
@@ -382,7 +385,7 @@ The most general form of command-line arguments looks like the following:
 
 Where ```<while_code.txt>``` is the path of the ```While``` sourcecode. For the syntax of the language, see [Syntax](#Syntax).  
 
-If the code has undefined variables, we need to pass them as command-line arguments in the form of ```[<argument_name>:=<value>]```. For example, if the code contains undefined ```x``` and ```y```, we may pass in ```x:=1 y:=3*2```. Here we can also simplify ```:=``` to ```=```, but this is **NOT** allowed in ```While``` sourcecode as ```=``` there has the same semantic as ```==```.  
+If the code has undefined variables, we need to pass them as command-line arguments in the form of ```[<argument_name>:=<value>]```. For example, if the code contains undefined ```x``` and ```y```, we may pass in ```x:=1 "y := 3 * 2"```. Here we can also simplify ```:=``` to ```=```, but this is **NOT** allowed in ```While``` sourcecode as ```=``` there has the same semantic as ```==```.  
 
 We can pass an expression to the right-hand side of ```:=```, but they must not contain another variable, even if the latter is previously assigned, thus ```x:=1 y:=3*x``` is illegal.  
 

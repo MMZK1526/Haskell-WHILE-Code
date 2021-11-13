@@ -1,5 +1,7 @@
-if x < 1:
-  -1
+:) Calculates the number of transformation needed to turn a positive integer to
+:) 1 with the collatz sequence.
+if x < 1: :) the colon can be omitted 
+  -1 :) same as return -1; indicating an error
 c := 0
 while x != 1:
   isEven := x % 2 == 0

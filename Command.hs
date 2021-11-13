@@ -14,7 +14,7 @@ import EvalError
 import Text.Parsec.String
 import Text.Parsec
 import Utilities ( eatWSP )
-import Token ( parseIdentifier, parseReservedOp, parseReserved )
+import Token ( parseIdentifier, parseReservedOp, parseReserved, parseComment )
 
 instance Expression Command where
   -- | Is normal (irreducible).
@@ -107,36 +107,35 @@ parseCom = parse comParser "While Command Parser: "
 comParser :: Parser Command
 comParser = seqParser 0 <* eof
   where
-    blockParser n  =
-          try assignParser
-      <|> whileParser n
-      <|> ifParser n
-      <|> try returnValParser
-      <|> returnVoidParser
-      <|> return Skip
-    returnValParser  = do
-      parseReserved "return" <|> void eatWSP
-      Ret <$> expParser'
-    returnVoidParser = do
-      parseReserved "return"
-      return RetVoid
-    assignParser     = do
+    blockParser n      =
+          try assignParser <* parseComment
+      <|> whileParser n <* parseComment
+      <|> ifParser n <* parseComment
+      <|> returnParser <* parseComment
+      <|> (parseComment >> return Skip)
+    returnParser       = try (do
+      parseReserved "return" <|> return ()
+      try (Ret <$> expParser')) <|> do
+      parseReserved "return" >> return RetVoid
+    assignParser       = do
       v   <- parseIdentifier
       parseReservedOp ":="
       Asgn v <$> expParser'
-    seqParser n      = do
+    seqParser n        = do
       com <- blockParser n
       (eof >> return com) <|> try (char '\n' >> eof >> return com) <|> do
       try (do char '\n'
               indentParser n
               com' <- seqParser n
-              return $ com :+: com'
+              return $ com +++ com'
           ) <|> return com
-    indentParser n   = count n (char ' ')
-      <?> "indentation of " ++ show n ++ " spaces!"
-    whileParser n    = do
+    indentParser n     = void (count n (char ' ')) <|> (do
+    parseComment
+    char '\n'
+    indentParser n) <?> "indentation of " ++ show n ++ " spaces!"
+    whileParser n      = do
       parseReserved "while"
-      exp <- expParser'
+      exp <- expParser' <* parseComment
       parseReservedOp ":" <|> return ()
       char '\n'
       indentParser (n + 2)
@@ -161,9 +160,9 @@ comParser = seqParser 0 <* eof
       indentParser (n + 2)
       com' <- ifBodyParser exp n
       return $ If exp com com')) <|> return (If exp com Skip)
-    ifParser n       = do
+    ifParser n         = do
       parseReserved "if"
-      exp  <- expParser'
+      exp  <- expParser' <* parseComment
       parseReservedOp ":" <|> return ()
       char '\n'
       indentParser (n + 2)

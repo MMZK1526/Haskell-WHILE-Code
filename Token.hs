@@ -16,6 +16,7 @@ TokenParser
   , identifier = parseIdentifier
   , reservedOp = parseReservedOp
   , reserved = parseReserved
+  , whiteSpace = parseComment
   } = makeTokenParser $ LanguageDef
     { identStart = letter
     , identLetter = alphaNum
@@ -30,7 +31,7 @@ TokenParser
       = ["true", "false", "if", "elif", "else", "while", "return"]
     , commentStart = ""
     , commentEnd = ""
-    , commentLine = ""
+    , commentLine = ":)"
     , nestedComments = False
     , usedSpaces = (== ' ')
     }

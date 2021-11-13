@@ -1,5 +1,7 @@
-a := 1
+:) A While code calculating the factorial of x.
+:) and yes, :) is comment :)
+a := 1 :) base case
 while x > 0
   a := a * x
   x := x - 1
-return a
+return a :) can be abbreviated to simply "a"

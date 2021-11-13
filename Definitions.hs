@@ -138,6 +138,12 @@ instance Show Command where
                                      replicate (n - 2) ' ' ++ "else\n" ++ 
                                      show' n c'
 
+-- | Reduce "Skip" from a (:+:).
+(+++) :: Command -> Command -> Command
+Skip +++ con = con
+con +++ Skip = con
+con +++ con' = con :+: con'
+
 -- | The "State" or "Context" of the expression.
 data Context = Context
   { varCon :: Map String Value -- ^ The variable context

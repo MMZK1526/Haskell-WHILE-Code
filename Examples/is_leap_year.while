@@ -1,5 +1,6 @@
+:) Enter a year, decides if it's a leap year.
 if x = 0
-  r := false
+  r := false :) this year is not even valid!
 elif x % 4 != 0
   r := false
 elif x % 400 != 0 & x % 100 = 0

@@ -69,8 +69,8 @@ The following are the reserved words in ```While```:
 |------|---------|------|
 |`true`|  Boolean true |      |
 |`false`|Boolean false||
-|`if`|if statement|an `if` statement must have an `else`|
-|`else`|the other branch of `if`|we don't currently support `elif`|
+|`if`|if statement||
+|`else`|the (optional) other branch of `if`|we don't currently support `elif`|
 |`while`|while statement||
 |`return`|terminate the program and returns value|if returning a value, the keyword can be omitted|
 

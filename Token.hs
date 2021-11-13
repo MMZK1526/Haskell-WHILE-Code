@@ -23,10 +23,11 @@ TokenParser
     , opStart = oneOf ""
     , opLetter = oneOf ""
     , reservedOpNames
-    = [ "+", "-", "*", "<=", ">=", "==", "!=", "<", ">", "&", "|", "!", ":=,"
-      , "&&", "||", "/", "%", ":"
-      ]
-    , reservedNames = ["true", "false", "if", "else", "while", "return"]
+      = [ "+", "-", "*", "<=", ">=", "==", "!=", "<", ">", "&", "|", "!", ":=,"
+        , "&&", "||", "/", "%", ":"
+        ]
+    , reservedNames 
+      = ["true", "false", "if", "elif", "else", "while", "return"]
     , commentStart = ""
     , commentEnd = ""
     , commentLine = ""

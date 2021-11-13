@@ -142,19 +142,29 @@ comParser = seqParser 0 <* eof
       indentParser (n + 2)
       com <- seqParser (n + 2)
       return $ While exp com
+    ifBodyParser exp n = do
+      com  <- seqParser (n + 2)
+      try (do
+      char '\n'
+      indentParser n
+      try (do
+      parseReserved "else"
+      parseReservedOp ":" <|> return ()
+      char '\n'
+      indentParser (n + 2)
+      com' <- seqParser (n + 2)
+      return $ If exp com com') <|> try (do
+      parseReserved "elif"
+      exp  <- expParser'
+      parseReservedOp ":" <|> return ()
+      char '\n'
+      indentParser (n + 2)
+      com' <- ifBodyParser exp n
+      return $ If exp com com')) <|> return (If exp com Skip)
     ifParser n       = do
       parseReserved "if"
       exp  <- expParser'
       parseReservedOp ":" <|> return ()
       char '\n'
       indentParser (n + 2)
-      com  <- seqParser (n + 2)
-      try (do
-      char '\n'
-      indentParser n
-      parseReserved "else"
-      parseReservedOp ":" <|> return ()
-      char '\n'
-      indentParser (n + 2)
-      com' <- seqParser (n + 2)
-      return $ If exp com com') <|> return (If exp com Skip)
+      ifBodyParser exp n

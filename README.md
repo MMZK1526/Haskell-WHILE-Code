@@ -58,9 +58,11 @@ The following are the allowed operators in ```While```:
 |`==`|equal to|can also be written as `=`|
 |`!=`|not equal to| |
 |`&&`|and|can also be written as `&`|
-|`&#124&#124`|or|can also be written as `&#124`|
+|`⎮⎮`[^2]|or|can also be written as `⎮`|
 |`!`|not| |
 |`:`|optional ending of a `if`, `else` or `while` statement| |
+
+[^2]: Note that the symbol in the table (```⎮```) is not actually the vertical bar (```|```), however, the latter confuses the markdown table and cannot be rendered properly.  
 
 The following are the reserved words in ```While```:  
 | Word | Meaning | Note |
@@ -148,7 +150,7 @@ Here is an example of running and debugging a simple [factorial function](#Examp
 ## Example
 The most basic way of using the CLI is to first navigate to the root directory of this repo (namely the same folder as [Command.hs](Command.hs)), then run the following:  
 
-```runghc main filename [arg1=val1 arg2=var2 ...]``` [^2]
+```runghc main filename [arg1=val1 arg2=var2 ...]``` [^3]
 
 For example, we have a [factorial example](Examples/factorial.while) which takes a parameter ```x``` and returns the factorial of this number. For how to write your own ```While`` code, see [Syntax](#Syntax).  
 
@@ -413,4 +415,4 @@ There are more examples in the \Examples folder, feel free to try them out!
 ## Documentation
 TODO
 
-[^2]: Of course, we can always compile the file Main.hs to achieve higher efficiency. In this case, just replace ```runghc main``` with the name of the executable.  
+[^3]: Of course, we can always compile the file Main.hs to achieve higher efficiency. In this case, just replace ```runghc main``` with the name of the executable.  

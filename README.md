@@ -51,16 +51,16 @@ The following are the allowed operators in ```While```:
 |   `/`    | Divide  | rounded down|
 |   `%`    |   Mod   |      |
 |  `:=`    | Assignment | similar to ```=``` in most languages |
-|`<`| less than |we don't allow inequalities between boolean values|
-|`>`|greater than|we don't allow inequalities between boolean values|
-|`<=`|less than or equal to|we don't allow inequalities between boolean values|
-|`>=`|greater than or equal to|we don't allow inequalities between boolean values|
-|`==`|equal to|can also be written as `=`|
-|`!=`|not equal to| |
-|`&&`|and|can also be written as `&`|
-|`⎮⎮`[^2]|or|can also be written as `⎮`|
-|`!`|not| |
-|`:`|optional ending of a `if`, `else` or `while` statement| |
+|`<`| Less Than |we don't allow inequalities between boolean values|
+|`>`|Greater Than|we don't allow inequalities between boolean values|
+|`<=`|Less Than or Equal To|we don't allow inequalities between boolean values|
+|`>=`|Greater Than or Equal To|we don't allow inequalities between boolean values|
+|`==`|Equal To|can also be written as `=`|
+|`!=`|Not Equal To| |
+|`&&`|And|can also be written as `&`|
+|`⎮⎮`[^2]|Or|can also be written as `⎮`|
+|`!`|Not| |
+|`:`|Optional ending of a `if`, `else` or `while` statement| |
 
 [^2]: Note that the symbol in the table (```⎮```) is not actually the vertical bar (```|```), however, the latter confuses the markdown table and cannot be rendered properly.  
 
@@ -148,9 +148,12 @@ Since I do not use ```stack```, I'm not sure how to install them with that. It s
 Here is an example of running and debugging a simple [factorial function](#Example). The full documentaton can be found [here](#Documentation).  
 
 ## Example
-The most basic way of using the CLI is to first navigate to the root directory of this repo (namely the same folder as [Command.hs](Command.hs)), then run the following:  
+The most basic way of using the CLI is to first navigate to the root directory of this repo (namely the same folder as [Main.hs](Main.hs)), then run the following:  
 
-```runghc main filename [arg1=val1 arg2=var2 ...]``` [^3]
+```runghc main filename [arg1=val1 arg2=var2 ...]```
+
+It is recommended to compile the file Main.hs to achieve higher efficiency. In this case, just replace ```runghc main``` with the name of the executable.  
+
 
 For example, we have a [factorial example](Examples/factorial.while) which takes a parameter ```x``` and returns the factorial of this number. For how to write your own ```While`` code, see [Syntax](#Syntax).  
 
@@ -414,5 +417,3 @@ There are more examples in the \Examples folder, feel free to try them out!
 
 ## Documentation
 TODO
-
-[^3]: Of course, we can always compile the file Main.hs to achieve higher efficiency. In this case, just replace ```runghc main``` with the name of the executable.  

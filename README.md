@@ -174,38 +174,34 @@ Press 'r' to go straight to the result.
 Press 'q' to quit.
 
 Step 0:
-y := x
 a := 1
-while y > 0
-  a := a * y
-  y := y - 1
+while x > 0
+  a := a * x
+  x := x - 1
 return a
 > s
 Step 1:
-y := 3
-a := 1
-while y > 0
-  a := a * y
-  y := y - 1
+[DO NOTHING]
+while x > 0
+  a := a * x
+  x := x - 1
 return a
 > x
-Context: [("x",3)]
-Rules applied :[E_ASSIGN_EXP,E_VAR]
+Context: [("a",1),("x",3)]
+Rules applied :[E_ASSIGN_VAL]
 > s
 Step 2:
-[DO NOTHING]
-a := 1
-while y > 0
-  a := a * y
-  y := y - 1
+while x > 0
+  a := a * x
+  x := x - 1
 return a
 > x
-Context: [("x",3),("y",3)]
-Rules applied :[E_ASSIGN_VAL]
+Context: [("a",1),("x",3)]
+Rules applied :[E_SKIP]
 > r
-Program completed after 50 steps!
+Program completed after 47 steps!
 Result: 6
-Context: [("a",6),("x",3),("y",0)]
+Context: [("a",6),("x",0)]
 ```
 
 Note that after entering ```x```, the debugger will dump the current context as well as the rules used in that particular step of calculation.  
@@ -215,188 +211,164 @@ We can also dump out the entire steps with the ```--debug=full``` option:
 ```
 > runghc main --debug=full Examples/factorial.while x=1
 Step 0:
-y := x
 a := 1
-while y > 0
-  a := a * y
-  y := y - 1
+while x > 0
+  a := a * x
+  x := x - 1
 return a
 
 Step 1:
-y := 1
-a := 1
-while y > 0
-  a := a * y
-  y := y - 1
+[DO NOTHING]
+while x > 0
+  a := a * x
+  x := x - 1
 return a
 
 Step 2:
-[DO NOTHING]
-a := 1
-while y > 0
-  a := a * y
-  y := y - 1
+while x > 0
+  a := a * x
+  x := x - 1
 return a
 
 Step 3:
-a := 1
-while y > 0
-  a := a * y
-  y := y - 1
+if x > 0
+  a := a * x
+  x := x - 1
+  while x > 0
+    a := a * x
+    x := x - 1
 return a
 
 Step 4:
-[DO NOTHING]
-while y > 0
-  a := a * y
-  y := y - 1
+if 1 > 0
+  a := a * x
+  x := x - 1
+  while x > 0
+    a := a * x
+    x := x - 1
 return a
 
 Step 5:
-while y > 0
-  a := a * y
-  y := y - 1
+if true
+  a := a * x
+  x := x - 1
+  while x > 0
+    a := a * x
+    x := x - 1
 return a
 
 Step 6:
-if y > 0
-  a := a * y
-  y := y - 1
-  while y > 0
-    a := a * y
-    y := y - 1
+a := a * x
+x := x - 1
+while x > 0
+  a := a * x
+  x := x - 1
 return a
 
 Step 7:
-if 1 > 0
-  a := a * y
-  y := y - 1
-  while y > 0
-    a := a * y
-    y := y - 1
+a := 1 * x
+x := x - 1
+while x > 0
+  a := a * x
+  x := x - 1
 return a
 
 Step 8:
-if true
-  a := a * y
-  y := y - 1
-  while y > 0
-    a := a * y
-    y := y - 1
+a := 1 * 1
+x := x - 1
+while x > 0
+  a := a * x
+  x := x - 1
 return a
 
 Step 9:
-a := a * y
-y := y - 1
-while y > 0
-  a := a * y
-  y := y - 1
+a := 1
+x := x - 1
+while x > 0
+  a := a * x
+  x := x - 1
 return a
 
 Step 10:
-a := 1 * y
-y := y - 1
-while y > 0
-  a := a * y
-  y := y - 1
+[DO NOTHING]
+x := x - 1
+while x > 0
+  a := a * x
+  x := x - 1
 return a
 
 Step 11:
-a := 1 * 1
-y := y - 1
-while y > 0
-  a := a * y
-  y := y - 1
+x := x - 1
+while x > 0
+  a := a * x
+  x := x - 1
 return a
 
 Step 12:
-a := 1
-y := y - 1
-while y > 0
-  a := a * y
-  y := y - 1
+x := 1 - 1
+while x > 0
+  a := a * x
+  x := x - 1
 return a
 
 Step 13:
-[DO NOTHING]
-y := y - 1
-while y > 0
-  a := a * y
-  y := y - 1
+x := 0
+while x > 0
+  a := a * x
+  x := x - 1
 return a
 
 Step 14:
-y := y - 1
-while y > 0
-  a := a * y
-  y := y - 1
+[DO NOTHING]
+while x > 0
+  a := a * x
+  x := x - 1
 return a
 
 Step 15:
-y := 1 - 1
-while y > 0
-  a := a * y
-  y := y - 1
+while x > 0
+  a := a * x
+  x := x - 1
 return a
 
 Step 16:
-y := 0
-while y > 0
-  a := a * y
-  y := y - 1
+if x > 0
+  a := a * x
+  x := x - 1
+  while x > 0
+    a := a * x
+    x := x - 1
 return a
 
 Step 17:
-[DO NOTHING]
-while y > 0
-  a := a * y
-  y := y - 1
+if 0 > 0
+  a := a * x
+  x := x - 1
+  while x > 0
+    a := a * x
+    x := x - 1
 return a
 
 Step 18:
-while y > 0
-  a := a * y
-  y := y - 1
+if false
+  a := a * x
+  x := x - 1
+  while x > 0
+    a := a * x
+    x := x - 1
 return a
 
 Step 19:
-if y > 0
-  a := a * y
-  y := y - 1
-  while y > 0
-    a := a * y
-    y := y - 1
-return a
-
-Step 20:
-if 0 > 0
-  a := a * y
-  y := y - 1
-  while y > 0
-    a := a * y
-    y := y - 1
-return a
-
-Step 21:
-if false
-  a := a * y
-  y := y - 1
-  while y > 0
-    a := a * y
-    y := y - 1
-return a
-
-Step 22:
 [DO NOTHING]
 return a
 
-Step 23:
+Step 20:
 return a
 
-Step 24:
+Step 21:
 return 1
 
-Context: [("a",1),("x",1),("y",0)]
+Context: [("a",1),("x",0)]
 ```
 
 Note that this option does not dump the context after each step.  

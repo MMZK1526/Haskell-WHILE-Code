@@ -113,13 +113,12 @@ comParser = seqParser 0 <* eof
       <|> ifParser n
       <|> try returnValParser
       <|> returnVoidParser
-      <|> skipParser
-    skipParser       = eatWSP >> return Skip
+      <|> return Skip
     returnValParser  = do
       parseReserved "return" <|> void eatWSP
       Ret <$> expParser'
     returnVoidParser = do
-      parseReserved "return" 
+      parseReserved "return"
       return RetVoid
     assignParser     = do
       v   <- parseIdentifier
@@ -150,6 +149,7 @@ comParser = seqParser 0 <* eof
       char '\n'
       indentParser (n + 2)
       com  <- seqParser (n + 2)
+      try (do
       char '\n'
       indentParser n
       parseReserved "else"
@@ -157,4 +157,4 @@ comParser = seqParser 0 <* eof
       char '\n'
       indentParser (n + 2)
       com' <- seqParser (n + 2)
-      return $ If exp com com'
+      return $ If exp com com') <|> return (If exp com Skip)

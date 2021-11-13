@@ -91,9 +91,11 @@ main = do
             Just x      -> OpUnknown x
             _           -> OpDebug StepByStep) "DEBUG") "Debug Options"
         ] args
-  if not $ null errs
-  then putStr (head errs) >> help -- Print errors
-  else do
+  if      not $ null errs
+  then    putStr (head errs) >> help -- Print errors
+  else if null ops && null ins 
+  then    interactiveShell -- Run interactive shell
+  else    do
   -- Parse option arguments
   let config = getConfig ops
   if   isHelp config
@@ -172,7 +174,7 @@ debugWhile ctxt com = introMsg >> putStrLn "" >> go ctxt com 0 Nothing
       print err
       print ctxt
 
-    -- Main part of debugger.
+    -- Main cycle of debugger.
     go ctxt com i input = do
       let debugCycle = do
               -- Get user input or default input
@@ -197,7 +199,6 @@ debugWhile ctxt com = introMsg >> putStrLn "" >> go ctxt com 0 Nothing
                   (E_SKIP : _)     -> go ctxt com (i + 1) Nothing
                   (E_IF_TRUE : _)  -> go ctxt com (i + 1) Nothing
                   (E_IF_FALSE : _) -> go ctxt com (i + 1) Nothing
-                  (E_WHILE : _)    -> go ctxt com (i + 1) Nothing
                   _                -> go ctxt com (i + 1) $ Just "l"
               else if e `elem` ["q", "quit"] -- Quit debugger
               then    return ()
@@ -207,3 +208,26 @@ debugWhile ctxt com = introMsg >> putStrLn "" >> go ctxt com 0 Nothing
         putStrLn $ "Step " ++ show i ++ ":"
         print com
       debugCycle
+
+-- | Runs the interactive shell that prompts the result of every expression the
+-- user typed in.
+interactiveShell :: IO ()
+interactiveShell = introMsg >> go emptyContext
+  where 
+    introMsg = do
+      putStrLn "Welcome to the While Interactive Shell."
+      putStrLn "Type in any expression or press ':q' to quit."
+
+    go ctxt = do
+      putStr' "> "
+      input <- getLine
+      if   input `elem` [":q", ":quit"]
+      then return ()
+      else do
+      case parse comParser "Shell: " input of
+        Left err -> print err >> go ctxt
+        Right e  -> do
+        case runStateT (evalS e) ctxt of
+          Left err            -> print err >> go ctxt
+          Right (Ret v, ctxt) -> print v >> go ctxt
+          Right (_, ctxt)     -> go ctxt

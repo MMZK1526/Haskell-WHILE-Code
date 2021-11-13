@@ -32,7 +32,9 @@ int = read <$> do
   f <- oneOf "-0123456789"
   r <- many digit
   void (try (void $ many $ char ' '))
-  return (f : r)
+  if f == '-' && null r
+    then fail ""
+    else return (f : r)
 
 -- | Transform a Maybe to a Either EvalError
 encodeErr :: EvalError -> Maybe a -> Either EvalError a

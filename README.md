@@ -265,8 +265,6 @@ if y > 0
   while y > 0
     a := a * y
     y := y - 1
-else
-  [DO NOTHING]
 return a
 
 Step 7:
@@ -276,8 +274,6 @@ if 1 > 0
   while y > 0
     a := a * y
     y := y - 1
-else
-  [DO NOTHING]
 return a
 
 Step 8:
@@ -287,8 +283,6 @@ if true
   while y > 0
     a := a * y
     y := y - 1
-else
-  [DO NOTHING]
 return a
 
 Step 9:
@@ -372,8 +366,6 @@ if y > 0
   while y > 0
     a := a * y
     y := y - 1
-else
-  [DO NOTHING]
 return a
 
 Step 20:
@@ -383,8 +375,6 @@ if 0 > 0
   while y > 0
     a := a * y
     y := y - 1
-else
-  [DO NOTHING]
 return a
 
 Step 21:
@@ -394,8 +384,6 @@ if false
   while y > 0
     a := a * y
     y := y - 1
-else
-  [DO NOTHING]
 return a
 
 Step 22:

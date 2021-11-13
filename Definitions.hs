@@ -116,16 +116,18 @@ infixr 2 :+:
 instance Show Command where
   show = show' 0
     where
-      show' n (Asgn v exp) = replicate n ' ' ++ v ++ " := " ++ show exp
-      show' n (c :+: c')   = show' n c ++ "\n" ++ show' n c'
-      show' n Skip         = replicate n ' ' ++ "[DO NOTHING]"
-      show' n (Ret exp)    = replicate n ' ' ++ "return " ++ show exp
-      show' n (If b c c')  = replicate n ' ' ++ "if " ++ show b ++ "\n" ++
-                             show' (n + 2) c ++ "\n" ++
-                             replicate n ' ' ++ "else\n" ++ show' (n + 2) c'
-      show' n (While b c)  = replicate n ' ' ++ "while " ++ show b ++ "\n" ++
-                             show' (n + 2) c
-      show' n RetVoid      = replicate n ' ' ++ "return"
+      show' n (Asgn v exp)  = replicate n ' ' ++ v ++ " := " ++ show exp
+      show' n (c :+: c')    = show' n c ++ "\n" ++ show' n c'
+      show' n Skip          = replicate n ' ' ++ "[DO NOTHING]"
+      show' n (Ret exp)     = replicate n ' ' ++ "return " ++ show exp
+      show' n (If b c Skip) = replicate n ' ' ++ "if " ++ show b ++ "\n" ++
+                              show' (n + 2) c
+      show' n (If b c c')   = replicate n ' ' ++ "if " ++ show b ++ "\n" ++
+                              show' (n + 2) c ++ "\n" ++
+                              replicate n ' ' ++ "else\n" ++ show' (n + 2) c'
+      show' n (While b c)   = replicate n ' ' ++ "while " ++ show b ++ "\n" ++
+                              show' (n + 2) c
+      show' n RetVoid       = replicate n ' ' ++ "return"
 
 -- | The "State" or "Context" of the expression.
 data Context = Context

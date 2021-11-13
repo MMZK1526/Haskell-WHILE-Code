@@ -176,6 +176,7 @@ We can also pass in a debug option. The most basic option is ```-d```, which wou
 > runghc main -d Examples/factorial.while x:=3
 Press 'x' to dump the context.
 Press 's' to go to the next step.
+Press Enter to go to the next line.
 Press 'r' to go straight to the result.
 Press 'q' to quit.
 
@@ -399,5 +400,8 @@ The following are the available options:
 * ```--help``` or `-h`: Show the help page. If this option is present, other options are ignored.  
 * ```--debug```: Debugging options. If multiple ```--debug``` options are passed in, the first one is used.  
   * ```--debug=none```: No debugging; simply prints out the result. Default config.  
-  * ```--debug=step``` or `-d`: Starts an interactive debugger that can print out the next step or show current context and rules applied on user input.  
+  * ```--debug=step``` or `-d`: Starts an interactive debugger that can print out the next step or show current context and rules applied on user input. See [While Debugger](#while-debugger) for more information.  
   * ```--debug=all```: Prints out all intermediate steps at once, showing the answer configuration. It does not dump the context after each step.  
+
+## While Debugger
+TODO  

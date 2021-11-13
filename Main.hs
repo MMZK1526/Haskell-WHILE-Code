@@ -19,6 +19,7 @@ import System.Environment
 import Text.Parsec
 import Token
 import Utilities
+import Data.Maybe
 
 -- | The debug modes.
 data DebugMode
@@ -45,9 +46,9 @@ data WhileConfig
 
 {-# INLINE defaultConfig #-}
 defaultConfig :: WhileConfig
-defaultConfig = Config 
+defaultConfig = Config
   { debugMode = NoDebug
-  , typeCheck = False 
+  , typeCheck = False
   , isHelp = False
   , err = Nothing
   }
@@ -148,20 +149,20 @@ runWhile src
 
 -- | Interactive debugger.
 debugWhile :: Context -> Command -> IO ()
-debugWhile ctxt com = introMsg >> putStrLn "" >> go ctxt com 0 True
+debugWhile ctxt com = introMsg >> putStrLn "" >> go ctxt com 0 Nothing
   where
     -- The brief introduction at the start of the debugger.
     introMsg                 = do
       putStrLn "Press 'x' to dump the context."
       putStrLn "Press 's' to go to the next step."
+      putStrLn "Press Enter to go to the next line."
       putStrLn "Press 'r' to go straight to the result."
-      -- putStrLn "Press enter to go to the next line."
       putStrLn "Press 'q' to quit."
 
     -- Called when the debugger finishes (no error).
     finish ctxt com i        = do
       putStrLn $ "Program completed after " ++ show i ++ " steps!"
-      putStrLn $ 
+      putStrLn $
         "Result: " ++ if com == Skip then "void" else drop 7 $ show com
       print ctxt
 
@@ -172,27 +173,37 @@ debugWhile ctxt com = introMsg >> putStrLn "" >> go ctxt com 0 True
       print ctxt
 
     -- Main part of debugger.
-    go ctxt com i isPrinting = do
+    go ctxt com i input = do
       let debugCycle = do
-              -- Get user input (when enabled) or just "r"
-              e <- if isPrinting then getLine else return "r"
+              -- Get user input or default input
+              e <- maybe getLine return input
               if      e `elem` ["x", "dump"] -- Dump context
               then    putStrLn (dumpContext ctxt) >> debugCycle
               else if e `elem` ["s", "step"] -- One step forward
               then    case runStateT (eval1S com) ctxt of
                 Left NormalFormError -> finish ctxt com i
                 Left err             -> onError ctxt err
-                Right (com, ctxt) -> go ctxt com (i + 1) True
+                Right (com, ctxt)    -> go ctxt com (i + 1) Nothing
               else if e `elem` ["r", "ret", "return"] -- Skip all steps
               then    case runStateT (eval1S com) ctxt of
                 Left NormalFormError -> finish ctxt com i
                 Left err             -> onError ctxt err
-                Right (com, ctxt) -> go ctxt com (i + 1) False
+                Right (com, ctxt)    -> go ctxt com (i + 1) $ Just "r"
+              else if e `elem` ["l", "line", ""] -- To the next line
+              then    case runStateT (eval1S com) ctxt of
+                Left NormalFormError -> finish ctxt com i
+                Left err             -> onError ctxt err
+                Right (com, ctxt)    -> case rules ctxt of
+                  (E_SKIP : _)     -> go ctxt com (i + 1) Nothing
+                  (E_IF_TRUE : _)  -> go ctxt com (i + 1) Nothing
+                  (E_IF_FALSE : _) -> go ctxt com (i + 1) Nothing
+                  (E_WHILE : _)    -> go ctxt com (i + 1) Nothing
+                  _                -> go ctxt com (i + 1) $ Just "l"
               else if e `elem` ["q", "quit"] -- Quit debugger
               then    return ()
               else    putStrLn "Unrecognised input!" >> introMsg >> debugCycle
       -- Print out the step number
-      when isPrinting $ do
+      when (isNothing input) $ do
         putStrLn $ "Step " ++ show i ++ ":"
         print com
       debugCycle

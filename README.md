@@ -58,7 +58,7 @@ The following are the allowed operators in ```While```:
 |`==`|equal to|can also be written as `=`|
 |`!=`|not equal to| |
 |`&&`|and|can also be written as `&`|
-|```||```|or|can also be written as ```|```|
+|`&#124&#124`|or|can also be written as `&#124`|
 |`!`|not| |
 |`:`|optional ending of a `if`, `else` or `while` statement| |
 

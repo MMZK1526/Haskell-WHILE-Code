@@ -67,7 +67,7 @@ getConfig (o : os) = case o of
 usage :: IO ()
 usage = do
   T.putStrLn "Usage: runghc main [-h] [--debug=full|step] <while_code.txt>\
-            \[<argument_name>=<value>] [...]"
+            \[<argument_name>:=<value>] [...]"
   T.putStrLn "For full support, see\n\
             \https://github.com/sorrowfulT-Rex/50003-Models-of-Computation."
 
@@ -122,7 +122,7 @@ parseArg :: String -> Either ParseError (String, Value)
 parseArg = flip parse "Argument Parser: " $ do
   eatWSP
   v <- parseIdentifier
-  parseReservedOp "=" <|> parseReservedOp "!="
+  parseReservedOp "=" <|> parseReservedOp ":="
   e <- eval <$> expParser
   case e of
     Right (EVal e) -> return (v, e)

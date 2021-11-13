@@ -160,14 +160,14 @@ For example, we have a [factorial example](Examples/factorial.while) which takes
 We can use the ```While``` program to calculate ```3!``` by running the following:
 
 ```
-> runghc main Examples/factorial.while x=3
+> runghc main Examples/factorial.while x:=3
 Result: 6
 ```
 
 We can also pass in a debug option. The most basic option is ```-d```, which would start an interactive debugger where we can go through the evaluation step by step:  
 
 ```
-> runghc main -d Examples/factorial.while x=3
+> runghc main -d Examples/factorial.while x:=3
 Press 'x' to dump the context.
 Press 's' to go to the next step.
 Press 'r' to go straight to the result.
@@ -209,7 +209,7 @@ Note that after entering ```x```, the debugger will dump the current context as 
 We can also dump out the entire steps with the ```--debug=full``` option:   
 
 ```
-> runghc main --debug=full Examples/factorial.while x=1
+> runghc main --debug=full Examples/factorial.while x:=1
 Step 0:
 a := 1
 while x > 0
@@ -376,4 +376,22 @@ Note that this option does not dump the context after each step.
 There are more examples in the \Examples folder, feel free to try them out!  
 
 ## Documentation
-TODO
+The most general form of command-line arguments looks like the following:  
+
+```runghc main [-h] [--debug=full|step] <while_code.txt> [<argument_name>:=<value>] [...]```
+
+Where ```<while_code.txt>``` is the path of the ```While``` sourcecode. For the syntax of the language, see [Syntax](#Syntax).  
+
+If the code has undefined variables, we need to pass them as command-line arguments in the form of ```[<argument_name>:=<value>]```. For example, if the code contains undefined ```x``` and ```y```, we may pass in ```x:=1 y:=3*2```. Here we can also simplify ```:=``` to ```=```, but this is **NOT** allowed in ```While``` sourcecode as ```=``` there has the same semantic as ```==```.  
+
+We can pass an expression to the right-hand side of ```:=```, but they must not contain another variable, even if the latter is previously assigned, thus ```x:=1 y:=3*x``` is illegal.  
+
+The argument assignments must occur after the path of the sourcecode, otherwise there are no requirement of arguments ordering. The CLI always interprets the first non-option argument as the path, and the following non-option arguments as assignments.  
+
+The following are the available options:  
+
+* ```--help``` or `-h`: Show the help page. If this option is present, other options are ignored.  
+* ```--debug```: Debugging options. If multiple ```--debug``` options are passed in, the first one is used.  
+  * ```--debug=none```: No debugging; simply prints out the result. Default config.  
+  * ```--debug=step``` or `-d`: Starts an interactive debugger that can print out the next step or show current context and rules applied on user input.  
+  * ```--debug=all```: Prints out all intermediate steps at once, showing the answer configuration. It does not dump the context after each step.  

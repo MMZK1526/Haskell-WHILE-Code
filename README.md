@@ -69,20 +69,20 @@ The following are the allowed operators in ```While```:
 The following are the reserved words in ```While```:  
 | Word | Meaning | Note |
 |------|---------|------|
-|`true`|  Boolean true |      |
-|`false`|Boolean false||
-|`if`|if statement||
-|`else`|the (optional) other branch of `if`||
-|`elif`|similar to `else if`|without this, nested if will be a pain|
-|`while`|while statement||
-|`return`|terminate the program and returns value|if returning a value, the keyword can be omitted|
+|`true`|  Boolean TRUE |      |
+|`false`|Boolean FALSE||
+|`if`|If Statement||
+|`else`|The (optional) other branch of `if`||
+|`elif`|Similar to `else if`|without this, nested if would be a pain|
+|`while`|While Statement||
+|`return`|Terminate the program and returns value|if returning a value, the keyword can be omitted|
 
 The body of a control flow can be empty, which is denoted by an empty line (or a comment).  
 
 ## Rules
 In this section, $n$ denotes an integer while $b$ denotes a boolean value.
 
-**Big step rules of ```While```**:
+**Big-step rules of ```While```**:
 * B_NUM: $\dfrac{}{\langle n, s\rangle\Downarrow \langle n, s\rangle}$
 </br >
 
@@ -133,6 +133,9 @@ In this section, $n$ denotes an integer while $b$ denotes a boolean value.
 
 * B_OR_FALSE: $\dfrac{\langle E_1,s\rangle\Downarrow \langle{\tt false},s'\rangle~~\langle E_2, s'\rangle\Downarrow \langle b, s''\rangle}{\langle E_1\lor E_2, s\rangle\Downarrow \langle b, s''\rangle}$
 </br >
+
+**Small-step rules of ```While```**:
+TODO  
 
 [^1]: In the course, the partial function that records the variables are called "state", but here we use the term "context" to differentiate it from the ```State``` Monad that is widely used in my implementation.  
 

@@ -120,14 +120,23 @@ instance Show Command where
       show' n (c :+: c')    = show' n c ++ "\n" ++ show' n c'
       show' n Skip          = replicate n ' ' ++ "[DO NOTHING]"
       show' n (Ret exp)     = replicate n ' ' ++ "return " ++ show exp
-      show' n (If b c Skip) = replicate n ' ' ++ "if " ++ show b ++ "\n" ++
-                              show' (n + 2) c
-      show' n (If b c c')   = replicate n ' ' ++ "if " ++ show b ++ "\n" ++
-                              show' (n + 2) c ++ "\n" ++
-                              replicate n ' ' ++ "else\n" ++ show' (n + 2) c'
+      show' n c@If {}       = showIf n c
       show' n (While b c)   = replicate n ' ' ++ "while " ++ show b ++ "\n" ++
                               show' (n + 2) c
       show' n RetVoid       = replicate n ' ' ++ "return"
+
+      showIf n (If b c c')
+        = replicate n ' ' ++ "if " ++ show b ++ "\n" ++ showIfBody (n + 2) c c'
+      showIf _ _ 
+        = undefined
+
+      showIfBody n c Skip          = show' n c
+      showIfBody n c (If b c' c'') = show' n c ++ "\n" ++ 
+                                     replicate (n - 2) ' ' ++ "elif " ++ 
+                                     show b ++ "\n" ++ showIfBody n c' c''
+      showIfBody n c c'            = show' n c ++ "\n" ++ 
+                                     replicate (n - 2) ' ' ++ "else\n" ++ 
+                                     show' n c'
 
 -- | The "State" or "Context" of the expression.
 data Context = Context

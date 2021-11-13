@@ -208,7 +208,7 @@ Result: 6
 Context: [("a",6),("x",3),("y",0)]
 ```
 
-Note that after entering ```r```, the debugger will dump the current context as well as the rules used in that particular step of calculation.  
+Note that after entering ```x```, the debugger will dump the current context as well as the rules used in that particular step of calculation.  
 
 We can also dump out the entire steps with the ```--debug=full``` option:   
 

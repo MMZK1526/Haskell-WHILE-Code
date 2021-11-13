@@ -134,37 +134,30 @@ instance Expression SimpleExp where
             put c
             return exp
           And e e'  -> case (e, e') of
-              (EVal l, EVal r) -> do
-                modify' $ applyRule E_AND
+              (EVal l, e')     -> do
                 lv <- lift (encodeErr TypeError $ fromBoolMaybe l)
                 if not lv
-                  then do 
-                    return $ EVal $ VBool False
-                  else EVal . VBool <$> lift
-                    (encodeErr TypeError $ fromBoolMaybe r)
-              (EVal l, e')     -> do
-                e' <- go e'
-                modify' $ applyRule E_AND
-                return $ And e e'
+                  then modify' (applyRule E_AND_FALSE) >> return eBTM
+                  else do
+                    e' <- go e'
+                    modify' $ applyRule E_AND_TRUE
+                    return $ And e e'
               (e,      e')     -> do
                 e <- go e
-                modify' $ applyRule E_AND
-                return $ And e e'
+                modify' $ applyRule E_AND_EXP
+                return e'
           Or  e e'  -> case (e, e') of
-              (EVal l, EVal r) -> do
-                modify' $ applyRule E_OR
+              (EVal l, e')     -> do
                 lv <- lift (encodeErr TypeError $ fromBoolMaybe l)
                 if lv
-                  then return $ EVal $ VBool True
-                  else EVal . VBool <$> lift
-                    (encodeErr TypeError $ fromBoolMaybe r)
-              (EVal l, e')     -> do
-                e' <- go e'
-                modify' $ applyRule E_OR
-                return $ Or e e'
+                  then modify' (applyRule E_OR_TRUE) >> return eTOP
+                  else do
+                    e' <- go e'
+                    modify' $ applyRule E_OR_FALSE
+                    return e'
               (e,      e')     -> do
                 e <- go e
-                modify' $ applyRule E_OR
+                modify' $ applyRule E_OR_EXP
                 return $ Or e e'
 
 -- Parses a SimpleExp.

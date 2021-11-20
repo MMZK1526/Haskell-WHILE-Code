@@ -21,6 +21,9 @@ import Token
 import Utilities
 import Data.Maybe
 
+__name :: T.Text
+__name = "runghc main"
+
 -- | The debug modes.
 data DebugMode
   = FullSteps -- ^ Print out all small-steps at once.
@@ -67,14 +70,22 @@ getConfig (o : os) = case o of
 {-# INLINE usage #-}
 usage :: IO ()
 usage = do
-  T.putStrLn "Usage: whilei [-h] [--debug=full|step] <while_code.txt>\
-            \[<argument_name>:=<value>] [...]"
+  T.putStrLn $ T.concat 
+    [ "Usage: "
+    , __name
+    , " [-h] [--debug=full|step] <while_code.txt>"
+    , "[<argument_name>:=<value>] [...]"
+    ]
   T.putStrLn "For full support, see\
             \https://github.com/sorrowfulT-Rex/50003-Models-of-Computation."
 
 {-# INLINE help #-}
 help :: IO ()
-help = putStrLn "Run \"whilei -h\" for help."
+help = T.putStrLn $ T.concat 
+  [ "Run \""
+  , __name
+  , "-h\" for help."
+  ]
 
 -- | The entry point of the While Interpreter CLI.
 main :: IO ()

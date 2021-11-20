@@ -84,7 +84,7 @@ help :: IO ()
 help = T.putStrLn $ T.concat 
   [ "Run \""
   , __name
-  , "-h\" for help."
+  , " -h\" for help."
   ]
 
 -- | The entry point of the While Interpreter CLI.

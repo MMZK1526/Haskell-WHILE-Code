@@ -404,4 +404,18 @@ The following are the available options:
   * ```--debug=all```: Prints out all intermediate steps at once, showing the answer configuration. It does not dump the context after each step.  
 
 ## While Debugger
-TODO  
+To use the debugger, pass the `-d` option.  
+
+In the debugger, we can track every small-step of evaluation and shows the code after each transformation. We can also look at the variable states as well as the small-step rules being applied.  
+
+The following are the options within the debugger:  
+
+* `x` or `dump`: Show the current context. Will dump out all variables as well as the rules applied in the latest step.  
+
+* `s` or `step`: Conduct one small-step evaluation.   
+
+* `l` or `line` or enter: Evaluate to the next line of code.  
+
+* `r` or `return` or `result`: Go straight to the result.  
+
+* `q` or `quit`: Quit the debugger.  

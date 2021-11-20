@@ -186,7 +186,7 @@ debugWhile ctxt com = introMsg >> putStrLn "" >> go ctxt com 0 Nothing
                 Left NormalFormError -> finish ctxt com i
                 Left err             -> onError ctxt err
                 Right (com, ctxt)    -> go ctxt com (i + 1) Nothing
-              else if e `elem` ["r", "ret", "return"] -- Skip all steps
+              else if e `elem` ["r", "return", "result"] -- Skip all steps
               then    case runStateT (eval1S com) ctxt of
                 Left NormalFormError -> finish ctxt com i
                 Left err             -> onError ctxt err

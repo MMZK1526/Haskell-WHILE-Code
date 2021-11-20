@@ -67,14 +67,14 @@ getConfig (o : os) = case o of
 {-# INLINE usage #-}
 usage :: IO ()
 usage = do
-  T.putStrLn "Usage: runghc main [-h] [--debug=full|step] <while_code.txt>\
+  T.putStrLn "Usage: whilei [-h] [--debug=full|step] <while_code.txt>\
             \[<argument_name>:=<value>] [...]"
-  T.putStrLn "For full support, see\n\
+  T.putStrLn "For full support, see\
             \https://github.com/sorrowfulT-Rex/50003-Models-of-Computation."
 
 {-# INLINE help #-}
 help :: IO ()
-help = putStrLn "Run \"runghc main -h\" for help."
+help = putStrLn "Run \"whilei -h\" for help."
 
 -- | The entry point of the While Interpreter CLI.
 main :: IO ()

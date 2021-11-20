@@ -11,7 +11,7 @@ import Definitions
 import Text.Parsec hiding (State)
 import Text.Parsec.String
 import Text.Parsec.Expr
-import Utilities ( int, encodeErr, eatWSP )
+import Utilities ( int, encodeErr, eatWSP, divMaybe, modMaybe )
 import Control.Monad
 import Data.Maybe
 import EvalError
@@ -32,6 +32,10 @@ instance Expression SimpleExp where
           l <- evalS e  >>= lift . encodeErr TypeError . fromValMaybe . val
           r <- evalS e' >>= lift . encodeErr TypeError . fromValMaybe . val
           return $ EVal $ toVal $ l `op` r
+    let binOpMaybe op e e' fromValMaybe toVal = do
+          l <- evalS e  >>= lift . encodeErr TypeError . fromValMaybe . val
+          r <- evalS e' >>= lift . encodeErr TypeError . fromValMaybe . val
+          lift $ fmap (EVal . toVal) $ encodeErr ArithmeticError $ l `op` r
     let unOp op e fromValMaybe toVal
           = EVal . toVal . op <$>
             (evalS e >>= lift . encodeErr TypeError .fromValMaybe . val)
@@ -42,8 +46,10 @@ instance Expression SimpleExp where
       Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum
       Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum
       Prod e e' -> binOp (*)  e e' fromNumMaybe  VNum
-      Div  e e' -> binOp div  e e' fromNumMaybe  VNum
-      Mod  e e' -> binOp mod  e e' fromNumMaybe  VNum
+      Div  e e' -> 
+        binOpMaybe divMaybe e e' fromNumMaybe VNum
+      Mod  e e' -> 
+        binOpMaybe modMaybe e e' fromNumMaybe VNum
       ELT  e e' -> binOp (<)  e e' fromNumMaybe  VBool
       EGT  e e' -> binOp (>)  e e' fromNumMaybe  VBool
       ELE  e e' -> binOp (<=) e e' fromNumMaybe  VBool
@@ -91,6 +97,22 @@ instance Expression SimpleExp where
                   e <- go e
                   modify' (applyRule rule)
                   return $ toExp e e'
+        let binOpMaybe op e e' fromValMaybe toVal toExp rule = do
+              case (e, e') of
+                (EVal l, EVal r) -> do
+                  modify' (applyRule rule)
+                  lv <- lift $ encodeErr TypeError $ fromValMaybe l
+                  rv <- lift $ encodeErr TypeError $ fromValMaybe r
+                  lift $ fmap (EVal . toVal) $ 
+                    encodeErr ArithmeticError $ lv `op` rv
+                (EVal l, e')     -> do
+                  e' <- go e'
+                  modify' (applyRule rule)
+                  return $ toExp e e'
+                (e,      e')     -> do
+                  e <- go e
+                  modify' (applyRule rule)
+                  return $ toExp e e'
         let unOp op e fromValMaybe toVal toExp rule = case e of
               EVal v -> do
                 modify' (applyRule rule)
@@ -110,8 +132,10 @@ instance Expression SimpleExp where
           Plus e e' -> binOp (+)  e e' fromNumMaybe  VNum  Plus E_ADD
           Mnus e e' -> binOp (-)  e e' fromNumMaybe  VNum  Mnus E_SUB
           Prod e e' -> binOp (*)  e e' fromNumMaybe  VNum  Prod E_MULT
-          Div  e e' -> binOp div  e e' fromNumMaybe  VNum  Div  E_DIV
-          Mod  e e' -> binOp mod  e e' fromNumMaybe  VNum  Mod  E_MOD
+          Div  e e' -> 
+            binOpMaybe divMaybe e e' fromNumMaybe VNum Div E_DIV
+          Mod  e e' -> 
+            binOpMaybe modMaybe e e' fromNumMaybe VNum Mod E_MOD
           ELT  e e' -> binOp (<)  e e' fromNumMaybe  VBool ELT  E_LT
           EGT  e e' -> binOp (>)  e e' fromNumMaybe  VBool EGT  E_GT
           ELE  e e' -> binOp (<=) e e' fromNumMaybe  VBool ELE  E_LE

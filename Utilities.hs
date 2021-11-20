@@ -39,3 +39,13 @@ int = read <$> do
 -- | Transform a Maybe to a Either EvalError
 encodeErr :: EvalError -> Maybe a -> Either EvalError a
 encodeErr = flip maybe Right . Left
+
+-- | Safe integer division.
+divMaybe :: Integral a => a -> a -> Maybe a
+divMaybe _ 0 = Nothing
+divMaybe a b = Just $ div a b
+
+-- | Safe mod.
+modMaybe :: Integral a => a -> a -> Maybe a
+modMaybe _ 0 = Nothing
+modMaybe a b = Just $ mod a b

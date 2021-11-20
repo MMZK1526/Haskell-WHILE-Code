@@ -1,11 +1,11 @@
 Author: MMZK1526 *et ut* Yitang Chen
 
-# 50003-Models-of-Computation
+# Haskell-WHILE-Code
 Implement the key points and algorithms from the Imperial College Course Models of Computation.  
 
 # While Language
 ## Introduction
-The ```While Language``` is a simple Turing-Complete language introduced in the course. I have made an interpreter in ```Haskell``` for this language.  
+The ```While Language``` is a simple Turing-Complete language introduced in the Imperial College Course *Models of Computation*. I have made an interpreter in ```Haskell``` for this language.  
 
 Here I am going to introduce the syntax of the language. If you want to know how to use the interpreter straight away, go [here](#while-intepreter-cli).
 

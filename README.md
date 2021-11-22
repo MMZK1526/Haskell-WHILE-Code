@@ -150,13 +150,14 @@ Since I do not use ```stack```, I'm not sure how to install them with that. It s
 
 Here is an example of running and debugging a simple [factorial function](#Example). The full documentaton can be found [here](#Documentation).  
 
+Note that when ran without any arguments, we would start the [While Interactive Shell](#while-interactive-shell).  
+
 ## Example
 The most basic way of using the CLI is to first navigate to the root directory of this repo (namely the same folder as [Main.hs](Main.hs)), then run the following:  
 
 ```runghc main filename [arg1=val1 arg2=var2 ...]```
 
 It is recommended to compile the file Main.hs to achieve higher efficiency. In this case, just replace ```runghc main``` with the name of the executable.  
-
 
 For example, we have a [factorial example](Examples/factorial.while) which takes a parameter ```x``` and returns the factorial of this number. For how to write your own ```While`` code, see [Syntax](#Syntax).  
 
@@ -400,6 +401,8 @@ The following are the available options:
   * ```--debug=step``` or `-d`: Starts an interactive debugger that can print out the next step or show current context and rules applied on user input. See [While Debugger](#while-debugger) for more information.  
   * ```--debug=all```: Prints out all intermediate steps at once, showing the answer configuration. It does not dump the context after each step.  
 
+Apart from the options, we can also run it without any input, which would invoke the [While Interactive Shell](#while-interactive-shell).  
+
 ## While Debugger
 To use the debugger, pass the `-d` option.  
 
@@ -416,3 +419,6 @@ The following are the options within the debugger:
 * `r` or `return` or `result`: Go straight to the result.  
 
 * `q` or `quit`: Quit the debugger.  
+
+## While Interactive Shell
+TODO

@@ -6,6 +6,7 @@ module Command where
 import qualified Data.Map as M
 import Control.Monad
 import Control.Monad.Trans.State
+import Data.Text (Text)
 import SimpleExp
 import Expression
 import Definitions
@@ -100,11 +101,11 @@ instance Expression Command where
           _                             -> lift (Left NormalFormError)
 
 -- Parses a Command.
-parseCom :: String -> Either ParseError Command
+parseCom :: Text -> Either ParseError Command
 parseCom = parse comParser "While Command Parser: "
 
 -- | The parser for Command.
-comParser :: Parser Command
+comParser :: Parsec Text () Command
 comParser = seqParser 0 <* eof
   where
     blockParser n      =

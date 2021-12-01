@@ -6,6 +6,7 @@ import qualified Data.Map as M
 import Control.Monad.Trans.Class ( MonadTrans(lift) )
 import Control.Monad.Trans.State
 import Data.Bifunctor
+import Data.Text (Text)
 import Expression
 import Definitions
 import Text.Parsec hiding (State)
@@ -185,16 +186,16 @@ instance Expression SimpleExp where
                 return $ Or e e'
 
 -- Parses a SimpleExp.
-parseExp :: String -> Either ParseError SimpleExp
+parseExp :: Text -> Either ParseError SimpleExp
 parseExp = parse expParser "Simple Expression Parser: "
 
 -- The parser for SimpleExp (ignoring indentation).
-expParser :: Parser SimpleExp
+expParser :: Parsec Text () SimpleExp
 expParser = eatWSP >> expParser' <* eof
 
 -- | The parser for SimpleExp (no indentation allowed, ingore unparseable final
 -- parts).
-expParser' :: Parser SimpleExp
+expParser' :: Parsec Text () SimpleExp
 expParser' = buildExpressionParser expTable expTerm
  where
     expTerm

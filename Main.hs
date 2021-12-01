@@ -4,6 +4,7 @@
 module Main where
 
 import qualified Data.Map as M
+import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Command
@@ -119,20 +120,20 @@ main = do
     else do
     -- Parse source code and arguments
     let (src : args) = ins
-    case forM args parseArg of
+    case forM args (parseArg . T.pack) of
       Left error    -> print error >> help -- Error parsing arguments
       Right context -> do
       -- Handles file-not-find error
       handleDNE ((>> help) . print) $ do
       text <- T.readFile src
-      case parseCom $ T.unpack text of
+      case parseCom text of
         Left error -> print error -- Error parsing source code
         -- Run the program
         Right com  -> runWhile src config (Context (M.fromList context) []) com
 
 -- | Parses a single argument given to the While code. The arguments are in the
 -- form of "v:=E" and serve as the initial context of the program.
-parseArg :: String -> Either ParseError (String, Value)
+parseArg :: Text -> Either ParseError (String, Value)
 parseArg = flip parse "Argument Parser: " $ do
   eatWSP
   v <- parseIdentifier
@@ -231,7 +232,7 @@ interactiveShell = introMsg >> go emptyContext
 
     go ctxt = do
       putStr' "> "
-      input <- getLine
+      input <- T.getLine
       if   input `elem` [":q", ":quit"]
       then return ()
       else do

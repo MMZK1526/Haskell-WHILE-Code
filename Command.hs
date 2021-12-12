@@ -155,11 +155,11 @@ comParser = seqParser 0 <* eof
       com' <- seqParser (n + 2)
       return $ If exp com com') <|> try (do
       parseReserved "elif"
-      exp  <- expParser'
+      exp'  <- expParser'
       parseReservedOp ":" <|> return ()
       char '\n'
       indentParser (n + 2)
-      com' <- ifBodyParser exp n
+      com' <- ifBodyParser exp' n
       return $ If exp com com')) <|> return (If exp com Skip)
     ifParser n         = do
       parseReserved "if"

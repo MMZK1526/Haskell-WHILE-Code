@@ -230,16 +230,26 @@ interactiveShell = introMsg >> go emptyContext
       putStrLn "Welcome to the While Interactive Shell."
       putStrLn "Type in any expression or press ':q' to quit."
 
-    go ctxt = do
-      putStr' "> "
+    getInput n = do
+      putStr' $ replicate n ' ' ++ "> "
       input <- T.getLine
-      if   input `elem` [":q", ":quit"]
-      then return ()
-      else do
-      case parse comParser "Shell: " input of
+      if      input `elem` [":q", ":quit"]
+      then    return [":q"]
+      else if or [ keyword `T.isPrefixOf` input 
+                 | keyword <- ["if", "else", "elif", "while"] 
+                 ]
+      then    (T.concat [T.replicate n " ", input] :) <$> getInput (n + 2)
+      else if n /= 0
+      then    if   T.null input 
+              then getInput (n - 2) 
+              else (T.concat [T.replicate n " ", input] :) <$> getInput n
+      else    return [T.concat [T.replicate n " ", input]]
+    go ctxt  = do
+      input <- T.intercalate "\n" <$> getInput 0
+      unless (input == ":q") $ case parse comParser "Shell: " input of
         Left err -> print err >> go ctxt
-        Right e  -> do
-        case runStateT (evalS e) ctxt of
+        Right c  -> do
+        case runStateT (evalS c) ctxt of
           Left err            -> print err >> go ctxt
           Right (Ret v, ctxt) -> print v >> go ctxt
           Right (_, ctxt)     -> go ctxt

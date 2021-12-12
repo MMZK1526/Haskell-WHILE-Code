@@ -228,7 +228,7 @@ interactiveShell = introMsg >> go emptyContext
   where 
     introMsg = do
       putStrLn "Welcome to the While Interactive Shell."
-      putStrLn "Type in any expression or press ':q' to quit."
+      putStrLn "Type in any expression/code or press ':q' to quit."
 
     getInput n = do
       putStr' $ replicate n ' ' ++ "> "

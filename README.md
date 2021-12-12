@@ -76,64 +76,6 @@ The following are the reserved words in ```While```:
 
 The body of a control flow can be empty, which is denoted by an empty line (or a comment).  
 
-## Rules
-In this section, $n$ denotes an integer while $b$ denotes a boolean value.
-
-**Big-step rules of ```While```**:
-* B_NUM: $\dfrac{}{\langle n, s\rangle\Downarrow \langle n, s\rangle}$
-</br >
-
-* B_BOOL: $\dfrac{}{\langle b, s\rangle\Downarrow \langle b, s\rangle}$
-</br >
-
-* B_ADD: $\dfrac{\langle E_1, s \rangle\Downarrow \langle n_1,s'\rangle~~\langle E_2, s'\rangle \Downarrow \langle n_2, s''\rangle}{\langle E_1+E_2, s\rangle\Downarrow \langle n_1+n_2, s''\rangle}$
-</br >
-
-* B_SUB: $\dfrac{\langle E_1, s \rangle\Downarrow \langle n_1,s'\rangle~~\langle E_2, s'\rangle \Downarrow \langle n_2, s''\rangle}{\langle E_1-E_2, s\rangle\Downarrow \langle n_1-n_2, s''\rangle}$
-</br >
-
-* B_MULT: $\dfrac{\langle E_1, s \rangle\Downarrow \langle n_1,s'\rangle~~\langle E_2, s'\rangle \Downarrow \langle n_2, s''\rangle}{\langle E_1*E_2, s\rangle\Downarrow \langle n_1*n_2, s''\rangle}$
-</br >
-
-* B_LT: $\dfrac{\langle E_1, s \rangle\Downarrow \langle n_1,s'\rangle~~\langle E_2, s'\rangle \Downarrow \langle n_2, s''\rangle}{\langle E_1<E_2, s\rangle\Downarrow \langle n_1<n_2, s''\rangle}$
-</br >
-
-* B_GT: $\dfrac{\langle E_1, s \rangle\Downarrow \langle n_1,s'\rangle~~\langle E_2, s'\rangle \Downarrow \langle n_2, s''\rangle}{\langle E_1>E_2, s\rangle\Downarrow \langle n_1>n_2, s''\rangle}$
-</br >
-
-* B_LE: $\dfrac{\langle E_1, s \rangle\Downarrow \langle n_1,s'\rangle~~\langle E_2, s'\rangle \Downarrow \langle n_2, s''\rangle}{\langle E_1\leq E_2, s\rangle\Downarrow \langle n_1\leq n_2, s''\rangle}$
-</br >
-
-* B_GE: $\dfrac{\langle E_1, s \rangle\Downarrow \langle n_1,s'\rangle~~\langle E_2, s'\rangle \Downarrow \langle n_2, s''\rangle}{\langle E_1\geq E_2, s\rangle\Downarrow \langle n_1\geq n_2, s''\rangle}$
-</br >
-
-* B_EQ_NUM: $\dfrac{\langle E_1, s \rangle\Downarrow \langle n_1,s'\rangle~~\langle E_2, s'\rangle \Downarrow \langle n_2, s''\rangle}{\langle E_1=E_2, s\rangle\Downarrow \langle n_1=n_2, s''\rangle}$
-</br >
-
-* B_EQ_BOOL: $\dfrac{\langle E_1, s \rangle\Downarrow \langle b_1,s'\rangle~~\langle E_2, s'\rangle \Downarrow \langle b_2, s''\rangle}{\langle E_1=E_2, s\rangle\Downarrow \langle b_1=b_2, s''\rangle}$
-</br >
-
-* B_NE_NUM: $\dfrac{\langle E_1, s \rangle\Downarrow \langle n_1,s'\rangle~~\langle E_2, s'\rangle \Downarrow \langle n_2, s''\rangle}{\langle E_1\not=E_2, s\rangle\Downarrow \langle n_1\not=n_2, s''\rangle}$
-</br >
-
-* B_NE_BOOL: $\dfrac{\langle E_1, s \rangle\Downarrow \langle b_1,s'\rangle~~\langle E_2, s'\rangle \Downarrow \langle b_2, s''\rangle}{\langle E_1\not=E_2, s\rangle\Downarrow \langle b_1\not=b_2, s''\rangle}$
-</br >
-
-* B_AND_TRUE: $\dfrac{\langle E_1,s\rangle\Downarrow \langle{\tt true},s'\rangle~~\langle E_2, s'\rangle\Downarrow \langle b, s''\rangle}{\langle E_1\land E_2, s\rangle\Downarrow \langle b, s''\rangle}$
-</br >
-
-* B_AND_FALSE: $\dfrac{\langle E_1,s\rangle\Downarrow \langle{\tt false},s'\rangle}{\langle E_1\land E_2, s\rangle\Downarrow \langle {\tt false}, s'\rangle}$
-</br >
-
-* B_OR_TRUE: $\dfrac{\langle E_1,s\rangle\Downarrow \langle{\tt true},s'\rangle}{\langle E_1\lor E_2, s\rangle\Downarrow \langle {\tt true}, s'\rangle}$
-</br >
-
-* B_OR_FALSE: $\dfrac{\langle E_1,s\rangle\Downarrow \langle{\tt false},s'\rangle~~\langle E_2, s'\rangle\Downarrow \langle b, s''\rangle}{\langle E_1\lor E_2, s\rangle\Downarrow \langle b, s''\rangle}$
-</br >
-
-**Small-step rules of ```While```**:
-TODO  
-
 [^1]: In the course, the partial function that records the variables are called "state", but here we use the term "context" to differentiate it from the ```State``` Monad that is widely used in my implementation.  
 
 # While Intepreter CLI

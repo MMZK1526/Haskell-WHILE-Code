@@ -90,30 +90,30 @@ cabal install --lib parsec
 
 Since I do not use ```stack```, I'm not sure how to install them with that. It should be similar though :)  
 
-Here is an example of running and debugging a simple [factorial function](#Example). The full documentaton can be found [here](#Documentation).  
+To install the CLI, simply run ```make``` from the root directory. It will generate the CLI called "whilei".  
 
-Note that when ran without any arguments, we would start the [While Interactive Shell](#while-interactive-shell).  
+Here is an example of running and debugging a simple [factorial function](##Example). The full documentaton can be found [here](##Documentation).  
+
+Note that when ran without any arguments, we would start the [While Interactive Shell](##while-interactive-shell).  
 
 ## Example
 The most basic way of using the CLI is to first navigate to the root directory of this repo (namely the same folder as [Main.hs](Main.hs)), then run the following:  
 
-```runghc main filename [arg1=val1 arg2=var2 ...]```
-
-It is recommended to compile the file Main.hs to achieve higher efficiency. In this case, just replace ```runghc main``` with the name of the executable.  
+```whilei filename [arg1=val1 arg2=var2 ...]```
 
 For example, we have a [factorial example](Examples/factorial.while) which takes a parameter ```x``` and returns the factorial of this number. For how to write your own ```While`` code, see [Syntax](#Syntax).  
 
 We can use the ```While``` program to calculate ```3!``` by running the following:
 
 ```
-> runghc main Examples/factorial.while x:=3
+> whilei Examples/factorial.while x:=3
 Result: 6
 ```
 
 We can also pass in a debug option. The most basic option is ```-d```, which would start an interactive debugger where we can go through the evaluation step by step:  
 
 ```
-> runghc main -d Examples/factorial.while x:=3
+> whilei -d Examples/factorial.while x:=3
 Press 'x' to dump the context.
 Press 's' to go to the next step.
 Press Enter to go to the next line.
@@ -156,7 +156,7 @@ Note that after entering ```x```, the debugger will dump the current context as 
 We can also dump out the entire steps with the ```--debug=full``` option:   
 
 ```
-> runghc main --debug=full Examples/factorial.while x:=1
+> whilei --debug=full Examples/factorial.while x:=1
 Step 0:
 a := 1
 while x > 0
@@ -325,7 +325,7 @@ There are more examples in the \Examples folder, feel free to try them out!
 ## Documentation
 The most general form of command-line arguments looks like the following:  
 
-```runghc main [-h] [--debug=full|step] <while_code.txt> [<argument_name>:=<value>] [...]```
+```whilei [-h] [--debug=full|step] <while_code.txt> [<argument_name>:=<value>] [...]```
 
 Where ```<while_code.txt>``` is the path of the ```While``` sourcecode. For the syntax of the language, see [Syntax](#Syntax).  
 
@@ -363,4 +363,27 @@ The following are the options within the debugger:
 * `q` or `quit`: Quit the debugger.  
 
 ## While Interactive Shell
-TODO
+To start the Interactive Shell (REPL), run the CLI without argument:  
+
+```whilei```
+
+Then we can type in any `While` expressions and instructions. For example:  
+
+```
+> whilei
+Welcome to the While Interactive Shell.
+Type in any expression/code or press ':q' to quit.
+> 3 + 5  
+8
+> x := 11
+> 
+> while x > 1:
+  > x := x - 3
+  > 
+> x
+-1
+> 
+> :q
+```
+
+Note that indentations are handled automatically; to outdent, simply enter an empty line. The Interactive Shell outputs results when the latest expression has a value (*i.e* not an assignment) and the current indentations level is zero.  

@@ -23,7 +23,7 @@ import Utilities
 import Data.Maybe
 
 __name :: T.Text
-__name = "runghc main"
+__name = "whilei"
 
 -- | The debug modes.
 data DebugMode

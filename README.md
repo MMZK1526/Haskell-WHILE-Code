@@ -92,9 +92,9 @@ Since I do not use ```stack```, I'm not sure how to install them with that. It s
 
 To install the CLI, simply run ```make``` from the root directory. It will generate the CLI called "whilei".  
 
-Here is an example of running and debugging a simple [factorial function](##Example). The full documentaton can be found [here](##Documentation).  
+Here is an example of running and debugging a simple [factorial function](#Example). The full documentaton can be found [here](#Documentation).  
 
-Note that when ran without any arguments, we would start the [While Interactive Shell](##while-interactive-shell).  
+Note that when ran without any arguments, we would start the [While Interactive Shell](#while-interactive-shell).  
 
 ## Example
 The most basic way of using the CLI is to first navigate to the root directory of this repo (namely the same folder as [Main.hs](Main.hs)), then run the following:  

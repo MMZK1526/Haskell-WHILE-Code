@@ -47,7 +47,7 @@ The following are the allowed operators in ```While```:
 |   `+`    |  Plus   |      |
 |   `-`    |  Minus  |      |
 |   `*`    | Multiply |     |
-|   `/`    | Divide  | rounded down|
+|   `/`    | Divide  | rounded towards zero|
 |   `%`    |   Mod   |      |
 |  `:=`    | Assignment | similar to ```=``` in most languages |
 |`<`| Less Than |we don't allow inequalities between boolean values|

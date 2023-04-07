@@ -78,7 +78,7 @@ usage = do
     , "[<argument_name>:=<value>] [...]"
     ]
   T.putStrLn "For full support, see\
-            \https://github.com/sorrowfulT-Rex/50003-Models-of-Computation."
+            \https://github.com/MMZK1526/50003-Models-of-Computation."
 
 {-# INLINE help #-}
 help :: IO ()

@@ -78,7 +78,7 @@ usage = do
     , "[<argument_name>:=<value>] [...]"
     ]
   T.putStrLn "For full support, see\
-            \https://github.com/MMZK1526/50003-Models-of-Computation."
+            \https://github.com/MMZK1526/Haskell-WHILE-Code."
 
 {-# INLINE help #-}
 help :: IO ()

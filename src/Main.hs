@@ -12,7 +12,7 @@ import Control.Monad
 import Control.Monad.Trans.State
 import Definitions
 import EvalError
-import Expression
+import Executable
 import Gadgets.IO
 import SimpleExp
 import System.Console.GetOpt

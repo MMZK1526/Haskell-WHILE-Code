@@ -24,7 +24,7 @@ executable whilei
         Command,
         Definitions,
         EvalError,
-        Expression,
+        Executable,
         Gadgets.Text.IO,
         Gadgets.IO,
         Gadgets.Monad,

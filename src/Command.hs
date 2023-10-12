@@ -8,7 +8,7 @@ import Control.Monad
 import Control.Monad.Trans.State
 import Data.Text (Text)
 import SimpleExp
-import Expression
+import Executable
 import Definitions
 import Control.Monad.Trans.Class
 import EvalError
@@ -17,7 +17,7 @@ import Text.Parsec
 import Utilities ( eatWSP )
 import Token ( parseIdentifier, parseReservedOp, parseReserved, parseComment )
 
-instance Expression Command where
+instance Executable Command where
   -- | Is normal (irreducible).
   {-# INLINE isNormal #-}
   isNormal :: Command -> Bool

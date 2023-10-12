@@ -1,6 +1,6 @@
 {-# LANGUAGE ConstrainedClassMethods #-}
 
-module Expression where
+module Executable where
 
 import qualified Data.Map as M
 import Control.Monad.Trans.State
@@ -8,8 +8,8 @@ import Control.Monad
 import Definitions
 import EvalError
 
--- | Type class for an expression based on recursively defined rules.
-class Expression e where
+-- | Type class for an executable based on recursively defined rules.
+class Executable e where
   -- | Is normal (irreducible).
   isNormal :: e -> Bool
 

@@ -7,7 +7,7 @@ import Control.Monad.Trans.Class ( MonadTrans(lift) )
 import Control.Monad.Trans.State
 import Data.Bifunctor
 import Data.Text (Text)
-import Expression
+import Executable
 import Definitions
 import Text.Parsec hiding (State)
 import Text.Parsec.String
@@ -18,7 +18,7 @@ import Data.Maybe
 import EvalError
 import Token
 
-instance Expression SimpleExp where
+instance Executable SimpleExp where
   -- | Is normal (irreducible).
   {-# INLINE isNormal #-}
   isNormal :: SimpleExp -> Bool

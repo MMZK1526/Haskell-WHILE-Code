@@ -79,18 +79,11 @@ The body of a control flow can be empty, which is denoted by an empty line (or a
 [^1]: In the course, the partial function that records the variables are called "state", but here we use the term "context" to differentiate it from the ```State``` Monad that is widely used in my implementation.  
 
 # While Intepreter CLI
-To use the CLI, we need to have ```GHC``` environment. We also need the packages ```Data.Map``` and ```Text.Parsec```.  
+To use the CLI, we need to have `ghc` and `cabal`:
 
-To install these packages using ```cabal``` (assuming you already have ```GHC```), run the following:
-
+```bash
+cabal run whilei -- [arguments]
 ```
-cabal install --lib containers
-cabal install --lib parsec
-```
-
-Since I do not use ```stack```, I'm not sure how to install them with that. It should be similar though :)  
-
-To install the CLI, simply run ```make``` from the root directory. It will generate the CLI called "whilei".  
 
 Here is an example of running and debugging a simple [factorial function](#Example). The full documentaton can be found [here](#Documentation).  
 
@@ -99,21 +92,21 @@ Note that when ran without any arguments, we would start the [While Interactive 
 ## Example
 The most basic way of using the CLI is to first navigate to the root directory of this repo (namely the same folder as [Main.hs](Main.hs)), then run the following:  
 
-```whilei filename [arg1=val1 arg2=var2 ...]```
+```cabal run whilei -- filename [arg1=val1 arg2=var2 ...]```
 
 For example, we have a [factorial example](Examples/factorial.while) which takes a parameter ```x``` and returns the factorial of this number. For how to write your own ```While`` code, see [Syntax](#Syntax).  
 
 We can use the ```While``` program to calculate ```3!``` by running the following:
 
 ```
-> whilei Examples/factorial.while x:=3
+> cabal run whilei -- Examples/factorial.while x:=3
 Result: 6
 ```
 
 We can also pass in a debug option. The most basic option is ```-d```, which would start an interactive debugger where we can go through the evaluation step by step:  
 
 ```
-> whilei -d Examples/factorial.while x:=3
+> cabal run whilei -- -d Examples/factorial.while x:=3
 Press 'x' to dump the context.
 Press 's' to go to the next step.
 Press Enter to go to the next line.
@@ -156,7 +149,7 @@ Note that after entering ```x```, the debugger will dump the current context as 
 We can also dump out the entire steps with the ```--debug=full``` option:   
 
 ```
-> whilei --debug=full Examples/factorial.while x:=1
+> cabal run whilei -- --debug=full Examples/factorial.while x:=1
 Step 0:
 a := 1
 while x > 0
@@ -325,7 +318,7 @@ There are more examples in the \Examples folder, feel free to try them out!
 ## Documentation
 The most general form of command-line arguments looks like the following:  
 
-```whilei [-h] [--debug=full|step] <while_code.txt> [<argument_name>:=<value>] [...]```
+```cabal run whilei -- [-h] [--debug=full|step] <while_code.txt> [<argument_name>:=<value>] [...]```
 
 Where ```<while_code.txt>``` is the path of the ```While``` sourcecode. For the syntax of the language, see [Syntax](#Syntax).  
 
@@ -365,12 +358,12 @@ The following are the options within the debugger:
 ## While Interactive Shell
 To start the Interactive Shell (REPL), run the CLI without argument:  
 
-```whilei```
+```cabal run whilei```
 
 Then we can type in any `While` expressions and instructions. For example:  
 
 ```
-> whilei
+> cabal run whilei
 Welcome to the While Interactive Shell.
 Type in any expression/code or press ':q' to quit.
 > 3 + 5  

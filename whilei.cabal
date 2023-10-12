@@ -1,0 +1,41 @@
+cabal-version:      3.0
+-- The name of the package.
+name:               whilei
+
+version:            0.1.0.0
+
+synopsis:           TODO
+description:        TODO
+
+author:             Yitang Chen
+maintainer:         mmzk1526@outlook.com
+build-type:         Simple
+extra-source-files:
+    src/Examples/collatz.while
+    src/Examples/factorial.while
+    src/Examples/is_leap_year.while
+
+
+executable whilei
+    main-is:          Main.hs
+    hs-source-dirs:   src
+    default-language: Haskell2010
+    other-modules:
+        Command,
+        Definitions,
+        EvalError,
+        Expression,
+        Gadgets.Text.IO,
+        Gadgets.IO,
+        Gadgets.Monad,
+        Gadgets.Text,
+        SimpleExp,
+        Text.Parsec.Token,
+        Token,
+        Utilities
+    build-depends:
+        base >=4.13 && <5,
+        containers,
+        parsec,
+        transformers,
+        text,

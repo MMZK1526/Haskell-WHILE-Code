@@ -125,15 +125,15 @@ comParser = seqParser 0 <* eof
     seqParser n        = do
       com <- blockParser n
       (eof >> return com) <|> try (char '\n' >> eof >> return com) <|> do
-      try (do char '\n'
-              indentParser n
-              com' <- seqParser n
-              return $ com +++ com'
-          ) <|> return com
+        try (do char '\n'
+                indentParser n
+                com' <- seqParser n
+                return $ com +++ com'
+            ) <|> return com
     indentParser n     = void (count n (char ' ')) <|> (do
-    parseComment
-    char '\n'
-    indentParser n) <?> "indentation of " ++ show n ++ " spaces!"
+      parseComment
+      char '\n'
+      indentParser n) <?> "indentation of " ++ show n ++ " spaces!"
     whileParser n      = do
       parseReserved "while"
       exp <- expParser' <* parseComment
@@ -145,22 +145,22 @@ comParser = seqParser 0 <* eof
     ifBodyParser exp n = do
       com  <- seqParser (n + 2)
       try (do
-      char '\n'
-      indentParser n
-      try (do
-      parseReserved "else"
-      parseReservedOp ":" <|> return ()
-      char '\n'
-      indentParser (n + 2)
-      com' <- seqParser (n + 2)
-      return $ If exp com com') <|> try (do
-      parseReserved "elif"
-      exp'  <- expParser'
-      parseReservedOp ":" <|> return ()
-      char '\n'
-      indentParser (n + 2)
-      com' <- ifBodyParser exp' n
-      return $ If exp com com')) <|> return (If exp com Skip)
+        char '\n'
+        indentParser n
+        try (do
+          parseReserved "else"
+          parseReservedOp ":" <|> return ()
+          char '\n'
+          indentParser (n + 2)
+          com' <- seqParser (n + 2)
+          return $ If exp com com') <|> try (do
+            parseReserved "elif"
+            exp'  <- expParser'
+            parseReservedOp ":" <|> return ()
+            char '\n'
+            indentParser (n + 2)
+            com' <- ifBodyParser exp' n
+            return $ If exp com com')) <|> return (If exp com Skip)
     ifParser n         = do
       parseReserved "if"
       exp  <- expParser' <* parseComment

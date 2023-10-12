@@ -103,33 +103,32 @@ main = do
             Just x      -> OpUnknown x
             _           -> OpDebug StepByStep) "DEBUG") "Debug Options"
         ] args
-  if      not $ null errs
-  then    putStr (head errs) >> help -- Print errors
-  else if null ops && null ins 
-  then    interactiveShell -- Run interactive shell
-  else    do
-  -- Parse option arguments
-  let config = getConfig ops
-  if   isHelp config
-  then usage
-  else case err config of
-    Just e  -> putStrLn ("Unknown parameter " ++ e ++ "!") >> help
-    Nothing -> do
-    if   null ins
-    then help -- No input file
-    else do
-    -- Parse source code and arguments
-    let (src : args) = ins
-    case forM args (parseArg . T.pack) of
-      Left error    -> print error >> help -- Error parsing arguments
-      Right context -> do
-      -- Handles file-not-find error
-      handleDNE ((>> help) . print) $ do
-      text <- T.readFile src
-      case parseCom text of
-        Left error -> print error -- Error parsing source code
-        -- Run the program
-        Right com  -> runWhile src config (Context (M.fromList context) []) com
+  if not $ null errs
+    then putStr (head errs) >> help -- Print errors
+    else if null ops && null ins 
+      then interactiveShell -- Run interactive shell
+      else do
+        -- Parse option arguments
+        let config = getConfig ops
+        if isHelp config
+          then usage
+          else case err config of
+            Just e  -> putStrLn ("Unknown parameter " ++ e ++ "!") >> help
+            Nothing -> if null ins
+              then help -- No input file
+              else do
+                -- Parse source code and arguments
+                let (src : args) = ins
+                case forM args (parseArg . T.pack) of
+                  Left error    -> print error >> help -- Error parsing arguments
+                  Right context -> do
+                    -- Handles file-not-find error
+                    handleDNE ((>> help) . print) $ do
+                      text <- T.readFile src
+                      case parseCom text of
+                        Left error -> print error -- Error parsing source code
+                        -- Run the program
+                        Right com  -> runWhile src config (Context (M.fromList context) []) com
 
 -- | Parses a single argument given to the While code. The arguments are in the
 -- form of "v:=E" and serve as the initial context of the program.
@@ -191,30 +190,30 @@ debugWhile ctxt com = introMsg >> putStrLn "" >> go ctxt com 0 Nothing
       let debugCycle = do
               -- Get user input or default input
               e <- maybe getLine return input
-              if      e `elem` ["x", "dump"] -- Dump context
-              then    putStrLn (dumpContext ctxt) >> debugCycle
-              else if e `elem` ["s", "step"] -- One step forward
-              then    case runStateT (eval1S com) ctxt of
-                Left NormalFormError -> finish ctxt com i
-                Left err             -> onError ctxt err
-                Right (com, ctxt)    -> go ctxt com (i + 1) Nothing
-              else if e `elem` ["r", "return", "result"] -- Skip all steps
-              then    case runStateT (eval1S com) ctxt of
-                Left NormalFormError -> finish ctxt com i
-                Left err             -> onError ctxt err
-                Right (com, ctxt)    -> go ctxt com (i + 1) $ Just "r"
-              else if e `elem` ["l", "line", ""] -- To the next line
-              then    case runStateT (eval1S com) ctxt of
-                Left NormalFormError -> finish ctxt com i
-                Left err             -> onError ctxt err
-                Right (com, ctxt)    -> case rules ctxt of
-                  (E_SKIP : _)     -> go ctxt com (i + 1) Nothing
-                  (E_IF_TRUE : _)  -> go ctxt com (i + 1) Nothing
-                  (E_IF_FALSE : _) -> go ctxt com (i + 1) Nothing
-                  _                -> go ctxt com (i + 1) $ Just "l"
-              else if e `elem` ["q", "quit"] -- Quit debugger
-              then    return ()
-              else    putStrLn "Unrecognised input!" >> introMsg >> debugCycle
+              if e `elem` ["x", "dump"] -- Dump context
+                then putStrLn (dumpContext ctxt) >> debugCycle
+                else if e `elem` ["s", "step"] -- One step forward
+                  then case runStateT (eval1S com) ctxt of
+                    Left NormalFormError -> finish ctxt com i
+                    Left err             -> onError ctxt err
+                    Right (com, ctxt)    -> go ctxt com (i + 1) Nothing
+                  else if e `elem` ["r", "return", "result"] -- Skip all steps
+                    then case runStateT (eval1S com) ctxt of
+                      Left NormalFormError -> finish ctxt com i
+                      Left err             -> onError ctxt err
+                      Right (com, ctxt)    -> go ctxt com (i + 1) $ Just "r"
+                    else if e `elem` ["l", "line", ""] -- To the next line
+                      then case runStateT (eval1S com) ctxt of
+                        Left NormalFormError -> finish ctxt com i
+                        Left err             -> onError ctxt err
+                        Right (com, ctxt)    -> case rules ctxt of
+                          (E_SKIP : _)     -> go ctxt com (i + 1) Nothing
+                          (E_IF_TRUE : _)  -> go ctxt com (i + 1) Nothing
+                          (E_IF_FALSE : _) -> go ctxt com (i + 1) Nothing
+                          _                -> go ctxt com (i + 1) $ Just "l"
+                      else if e `elem` ["q", "quit"] -- Quit debugger
+                        then return ()
+                        else putStrLn "Unrecognised input!" >> introMsg >> debugCycle
       -- Print out the step number
       when (isNothing input) $ do
         putStrLn $ "Step " ++ show i ++ ":"
@@ -248,8 +247,7 @@ interactiveShell = introMsg >> go emptyContext
       input <- T.intercalate "\n" <$> getInput 0
       unless (input == ":q") $ case parse comParser "Shell: " input of
         Left err -> print err >> go ctxt
-        Right c  -> do
-        case runStateT (evalS c) ctxt of
+        Right c  -> case runStateT (evalS c) ctxt of
           Left err            -> print err >> go ctxt
           Right (Ret v, ctxt) -> print v >> go ctxt
           Right (_, ctxt)     -> go ctxt
